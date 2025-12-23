@@ -53,15 +53,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-gray-400">
                 <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-[#D4A574]" />
-                <span>الرياض، المملكة العربية السعودية</span>
+                <span>طرابلس, ليبيا</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <Phone className="h-5 w-5 flex-shrink-0 text-[#D4A574]" />
-                <span dir="ltr">+966 50 123 4567</span>
+                <span dir="ltr">+218 91 123 4567</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <Mail className="h-5 w-5 flex-shrink-0 text-[#D4A574]" />
-                <span>info@althiqa-furniture.sa</span>
+                <span>info@althiqa.ly</span>
               </li>
             </ul>
           </div>

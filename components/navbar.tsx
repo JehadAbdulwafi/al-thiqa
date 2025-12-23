@@ -4,17 +4,17 @@ import { useState } from "react"
 import { Menu, ShoppingCart, X, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { label: "الرئيسية", href: "#" },
-    { label: "غرف النوم", href: "#bedroom" },
-    { label: "غرف المعيشة", href: "#living" },
-    { label: "المكاتب", href: "#office" },
-    { label: "الطاولات", href: "#tables" },
-    { label: "العروض", href: "#deals" },
+    { label: "الرئيسية", href: "/" },
+    { label: "المجموعات", href: "/collections" },
+    { label: "غرف النوم", href: "/collections/bedroom" },
+    { label: "غرف المعيشة", href: "/collections/living-room" },
+    { label: "المكاتب", href: "/collections/office" },
   ]
 
   return (
@@ -22,24 +22,24 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <Image src="/logo.png" alt="الثقة للأثاث - Ateka" width={60} height={60} className="object-contain" />
             <div className="text-2xl font-bold">
               <span className="text-gray-900 ml-1">الثقة</span>
               <span className="text-[#8B7355]">للأثاث</span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#8B7355] hover:bg-gray-50 rounded-lg transition-all"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -75,14 +75,14 @@ export function Navbar() {
           <div className="lg:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col gap-2">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.label}
                   href={item.href}
                   className="px-4 py-3 text-sm font-medium text-gray-700 hover:text-[#8B7355] hover:bg-gray-50 rounded-lg transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>

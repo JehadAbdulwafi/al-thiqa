@@ -8,19 +8,19 @@ const slides = [
     title: "مجموعة الشتاء الجديدة",
     subtitle: "أثاث فاخر بتصاميم عصرية",
     cta: "تسوق الآن",
-    image: "/modern-luxury-living-room-with-elegant-furniture-b.jpg",
+    image: "/modern-luxury-living-room-with-elegant-furniture-b.avif",
   },
   {
     title: "خصم يصل إلى 30%",
     subtitle: "على جميع غرف النوم",
     cta: "اكتشف العروض",
-    image: "/modern-office-desk.png",
+    image: "/modern-office-desk.avif",
   },
   {
     title: "أثاث مكتبي احترافي",
     subtitle: "راحة وإنتاجية في مكان عملك",
     cta: "شاهد المزيد",
-    image: "/marble-coffee-table.png",
+    image: "/marble-coffee-table.avif",
   },
 ]
 

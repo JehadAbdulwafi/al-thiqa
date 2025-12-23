@@ -8,7 +8,7 @@ const blogPosts = [
     title: "دليلك الشامل لاختيار الأثاث المناسب لغرفة المعيشة",
     excerpt: "تعرف على أفضل الطرق لاختيار الأثاث المثالي الذي يناسب مساحة غرفة المعيشة وأسلوبك الشخصي...",
     date: "15 ديسمبر 2024",
-    image: "/modern-luxury-living-room-with-elegant-furniture-b.jpg",
+    image: "/modern-luxury-living-room-with-elegant-furniture-b.avif",
     category: "نصائح التصميم",
   },
   {
@@ -16,7 +16,7 @@ const blogPosts = [
     title: "أحدث صيحات الأثاث العصري لعام 2024",
     excerpt: "استكشف أحدث الاتجاهات في عالم الأثاث والتصميم الداخلي التي ستهيمن على المنازل هذا العام...",
     date: "10 ديسمبر 2024",
-    image: "/marble-coffee-table.png",
+    image: "/marble-coffee-table.avif",
     category: "اتجاهات",
   },
   {
@@ -24,7 +24,7 @@ const blogPosts = [
     title: "كيف تحافظ على أثاثك الخشبي لسنوات طويلة",
     excerpt: "نصائح عملية للعناية بالأثاث الخشبي والحفاظ على جماله ومتانته لأطول فترة ممكنة...",
     date: "5 ديسمبر 2024",
-    image: "/modern-office-desk.png",
+    image: "/modern-office-desk.avif",
     category: "العناية والصيانة",
   },
 ]

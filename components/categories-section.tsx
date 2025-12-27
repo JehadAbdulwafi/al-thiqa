@@ -1,59 +1,19 @@
-import { Sofa, Bed, Laptop, Table, Armchair, BookOpen } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Image from "next/image"
 
-const categories = [
-  {
-    id: 1,
-    name: "غرف المعيشة",
-    icon: Sofa,
-    count: "150+ منتج",
-    color: "bg-blue-50 text-blue-600",
-    href: "/collections/living-room",
-  },
-  {
-    id: 2,
-    name: "غرف النوم",
-    icon: Bed,
-    count: "200+ منتج",
-    color: "bg-purple-50 text-purple-600",
-    href: "/collections/bedroom",
-  },
-  {
-    id: 3,
-    name: "المكاتب",
-    icon: Laptop,
-    count: "80+ منتج",
-    color: "bg-green-50 text-green-600",
-    href: "/collections/office",
-  },
-  {
-    id: 4,
-    name: "الطاولات",
-    icon: Table,
-    count: "120+ منتج",
-    color: "bg-orange-50 text-orange-600",
-    href: "/collections/dining-room",
-  },
-  {
-    id: 5,
-    name: "الكراسي",
-    icon: Armchair,
-    count: "90+ منتج",
-    color: "bg-pink-50 text-pink-600",
-    href: "/collections/living-room",
-  },
-  {
-    id: 6,
-    name: "المكتبات",
-    icon: BookOpen,
-    count: "60+ منتج",
-    color: "bg-indigo-50 text-indigo-600",
-    href: "/collections/office",
-  },
-]
+interface Collection {
+  id: number;
+  name: string;
+  slug: string;
+  image?: string | null;
+  itemCount?: number;
+}
 
-export function CategoriesSection() {
+interface CategoriesSectionProps {
+  collections: Collection[];
+}
+
+export function CategoriesSection({ collections }: CategoriesSectionProps) {
   return (
     <section className="py-20 md:py-24 bg-white">
       <div className="container mx-auto px-4">
@@ -63,25 +23,39 @@ export function CategoriesSection() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
-          {categories.map((category) => {
-            const Icon = category.icon
-            return (
-              <Link key={category.id} href={category.href}>
-                <Button
-                  variant="outline"
-                  className="h-auto flex-col gap-4 p-6 hover:shadow-lg transition-all border-gray-200 hover:border-[#8B7355] bg-white w-full"
-                >
-                  <div className={`${category.color} rounded-2xl p-4`}>
-                    <Icon className="h-8 w-8" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
-                    <p className="text-xs text-gray-500">{category.count}</p>
-                  </div>
-                </Button>
-              </Link>
-            )
-          })}
+          {collections.map((collection) => (
+            <Link key={collection.id} href={`/collections/${collection.slug}`}>
+              <Button
+                variant="outline"
+                className="h-auto flex-col gap-4 p-6 hover:shadow-lg transition-all border-gray-200 hover:border-[#8B7355] bg-white w-full"
+              >
+                <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                  {collection.image ? (
+                    <Image
+                      src={collection.image}
+                      alt={collection.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src="/placeholder.svg" // Placeholder image if no image is available
+                      alt={collection.name}
+                      width={48}
+                      height={48}
+                      className="opacity-50"
+                    />
+                  )}
+                </div>
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-900 mb-1">{collection.name}</h3>
+                  {collection.itemCount !== undefined && (
+                    <p className="text-xs text-gray-500">{collection.itemCount}+ منتج</p>
+                  )}
+                </div>
+              </Button>
+            </Link>
+          ))}
         </div>
       </div>
     </section>

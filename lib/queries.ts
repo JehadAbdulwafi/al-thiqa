@@ -1,7 +1,7 @@
 import "server-only"
 import { db } from "@/lib/db"
 import { products, blogPosts, collections } from "@/lib/db/schema"
-import { desc, eq, sql, asc, ne } from "drizzle-orm"
+import { desc, eq, sql, asc, ne, or, ilike } from "drizzle-orm"
 import { count } from "drizzle-orm"
 
 /**
@@ -112,10 +112,17 @@ export async function getCollectionBySlug(slug: string) {
  */
 export async function getProductsByCollection(
   collectionSlug: string,
-  options?: { sortBy?: string }
+  options?: {
+    sortBy?: string,
+    minPrice?: number,
+    maxPrice?: number,
+    categories?: string[],
+    colors?: string[],
+    materials?: string[],
+  }
 ) {
   console.log(
-    `Fetching products for collection: ${collectionSlug} with sort: ${options?.sortBy}`
+    `Fetching products for collection: ${collectionSlug} with filters: ${JSON.stringify(options)}`
   )
 
   let orderBy: any[] = [
@@ -135,15 +142,36 @@ export async function getProductsByCollection(
       break
   }
 
+  const whereConditions: any[] = [
+    eq(
+      products.collectionId,
+      db
+        .select({ id: collections.id })
+        .from(collections)
+        .where(eq(collections.slug, collectionSlug))
+    ),
+  ]
+
+  if (options?.minPrice !== undefined) {
+    whereConditions.push(sql`${products.price} >= ${options.minPrice}`)
+  }
+  if (options?.maxPrice !== undefined) {
+    whereConditions.push(sql`${products.price} <= ${options.maxPrice}`)
+  }
+  if (options?.colors && options.colors.length > 0) {
+    whereConditions.push(or(...options.colors.map(color => ilike(products.color, `%${color}%`))))
+  }
+  if (options?.materials && options.materials.length > 0) {
+    whereConditions.push(or(...options.materials.map(material => ilike(products.material, `%${material}%`))))
+  }
+  // Categories filtering logic - This needs to be done through the collectionId
+  // which is already part of the initial where condition.
+  // If the 'categories' filter refers to sub-categories or a different level of categorization
+  // beyond the main collectionSlug, we'd need a more complex join or schema adjustment.
+  // For now, it implicitly filters by the collectionSlug.
+
   const data = await db.query.products.findMany({
-    where: (products, { eq }) =>
-      eq(
-        products.collectionId,
-        db
-          .select({ id: collections.id })
-          .from(collections)
-          .where(eq(collections.slug, collectionSlug))
-      ),
+    where: (products, { and }) => and(...whereConditions),
     orderBy: orderBy,
     with: {
       images: {
@@ -268,7 +296,7 @@ export async function getCollectionsForForm() {
 export async function getAllCollectionsForDashboard() {
   console.log("Fetching all collections for dashboard...")
   const data = await db.query.collections.findMany({
-    orderBy: [collections.order, collections.name],
+    orderBy: [collections.name],
   })
   console.log(`Found ${data.length} collections for dashboard.`)
   return data

@@ -1,18 +1,59 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export function CollectionFilters() {
-  const [priceRange, setPriceRange] = useState([0, 50000])
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedColors, setSelectedColors] = useState<string[]>([])
-  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const initialMinPrice = Number(searchParams.get("minPrice")) || 0
+  const initialMaxPrice = Number(searchParams.get("maxPrice")) || 50000
+  const initialCategories = searchParams.get("categories")?.split(",") || []
+  const initialColors = searchParams.get("colors")?.split(",") || []
+  const initialMaterials = searchParams.get("materials")?.split(",") || []
+
+  const [priceRange, setPriceRange] = useState<[number, number]>([initialMinPrice, initialMaxPrice])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories)
+  const [selectedColors, setSelectedColors] = useState<string[]>(initialColors)
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>(initialMaterials)
+
+  // Helper function to update URL search parameters
+  const updateSearchParams = useCallback((key: string, value: string | string[]) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (Array.isArray(value)) {
+      if (value.length > 0) {
+        params.set(key, value.join(","))
+      } else {
+        params.delete(key)
+      }
+    } else {
+      if (value) {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+    }
+    router.push(`?${params.toString()}`, { scroll: false })
+  }, [router, searchParams])
+
+  // Synchronize internal state with URL on initial load and URL changes
+  useEffect(() => {
+    setPriceRange([
+      Number(searchParams.get("minPrice")) || 0,
+      Number(searchParams.get("maxPrice")) || 50000,
+    ])
+    setSelectedCategories(searchParams.get("categories")?.split(",") || [])
+    setSelectedColors(searchParams.get("colors")?.split(",") || [])
+    setSelectedMaterials(searchParams.get("materials")?.split(",") || [])
+  }, [searchParams])
+
 
   const categories = [
     { id: "sofas", label: "أرائك" },
@@ -39,19 +80,67 @@ export function CollectionFilters() {
     { id: "velvet", label: "مخمل" },
   ]
 
+  const hasActiveFilters =
+    priceRange[0] !== (Number(searchParams.get("minPrice")) || 0) ||
+    priceRange[1] !== (Number(searchParams.get("maxPrice")) || 50000) ||
+    selectedCategories.length > 0 ||
+    selectedColors.length > 0 ||
+    selectedMaterials.length > 0
+
+  const handleApplyPriceFilter = (newRange: [number, number]) => {
+    setPriceRange(newRange)
+    updateSearchParams("minPrice", newRange[0].toString())
+    updateSearchParams("maxPrice", newRange[1].toString())
+  }
+
+  const handleCategoryChange = (categoryId: string, checked: boolean) => {
+    let newCategories
+    if (checked) {
+      newCategories = [...selectedCategories, categoryId]
+    } else {
+      newCategories = selectedCategories.filter((c) => c !== categoryId)
+    }
+    setSelectedCategories(newCategories)
+    updateSearchParams("categories", newCategories)
+  }
+
+  const handleColorChange = (colorId: string) => {
+    let newColors
+    if (selectedColors.includes(colorId)) {
+      newColors = selectedColors.filter((c) => c !== colorId)
+    } else {
+      newColors = [...selectedColors, colorId]
+    }
+    setSelectedColors(newColors)
+    updateSearchParams("colors", newColors)
+  }
+
+  const handleMaterialChange = (materialId: string, checked: boolean) => {
+    let newMaterials
+    if (checked) {
+      newMaterials = [...selectedMaterials, materialId]
+    } else {
+      newMaterials = selectedMaterials.filter((m) => m !== materialId)
+    }
+    setSelectedMaterials(newMaterials)
+    updateSearchParams("materials", newMaterials)
+  }
+
   const handleClearFilters = () => {
     setPriceRange([0, 50000])
     setSelectedCategories([])
     setSelectedColors([])
     setSelectedMaterials([])
-  }
 
-  const hasActiveFilters =
-    priceRange[0] !== 0 ||
-    priceRange[1] !== 50000 ||
-    selectedCategories.length > 0 ||
-    selectedColors.length > 0 ||
-    selectedMaterials.length > 0
+    // Clear all filter params from URL
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("minPrice")
+    params.delete("maxPrice")
+    params.delete("categories")
+    params.delete("colors")
+    params.delete("materials")
+    router.push(`?${params.toString()}`, { scroll: false })
+  }
 
   return (
     <div className="bg-gray-50 rounded-lg p-6 sticky top-24">
@@ -76,7 +165,7 @@ export function CollectionFilters() {
                 max={50000}
                 step={500}
                 value={priceRange}
-                onValueChange={setPriceRange}
+                onValueChange={handleApplyPriceFilter}
                 className="w-full"
               />
               <div className="flex items-center justify-between text-sm text-gray-600">
@@ -97,13 +186,7 @@ export function CollectionFilters() {
                   <Checkbox
                     id={category.id}
                     checked={selectedCategories.includes(category.id)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedCategories([...selectedCategories, category.id])
-                      } else {
-                        setSelectedCategories(selectedCategories.filter((c) => c !== category.id))
-                      }
-                    }}
+                    onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
                   />
                   <Label htmlFor={category.id} className="text-sm text-gray-700 cursor-pointer">
                     {category.label}
@@ -122,13 +205,7 @@ export function CollectionFilters() {
               {colors.map((color) => (
                 <button
                   key={color.id}
-                  onClick={() => {
-                    if (selectedColors.includes(color.id)) {
-                      setSelectedColors(selectedColors.filter((c) => c !== color.id))
-                    } else {
-                      setSelectedColors([...selectedColors, color.id])
-                    }
-                  }}
+                  onClick={() => handleColorChange(color.id)}
                   className={`flex flex-col items-center gap-1.5 p-2 rounded-md transition-all ${
                     selectedColors.includes(color.id) ? "bg-gray-200" : "hover:bg-gray-100"
                   }`}
@@ -156,13 +233,7 @@ export function CollectionFilters() {
                   <Checkbox
                     id={material.id}
                     checked={selectedMaterials.includes(material.id)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedMaterials([...selectedMaterials, material.id])
-                      } else {
-                        setSelectedMaterials(selectedMaterials.filter((m) => m !== material.id))
-                      }
-                    }}
+                    onCheckedChange={(checked) => handleMaterialChange(material.id, checked)}
                   />
                   <Label htmlFor={material.id} className="text-sm text-gray-700 cursor-pointer">
                     {material.label}

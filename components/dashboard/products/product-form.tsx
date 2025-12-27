@@ -1,11 +1,9 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -18,21 +16,73 @@ import {
 import { createProduct, updateProduct } from "@/app/actions/products"
 import { Loader2 } from "lucide-react"
 
-// Same as in the user-form, using a simpler state management
+import { useSupabaseUpload } from "@/hooks/use-supabase-upload"
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/dropzone"
+
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
+
+const productFormSchema = z.object({
+  name: z.string().min(1, "الاسم مطلوب"),
+  slug: z.string().min(1, "الرابط اللطيف مطلوب"),
+  description: z.string().nullable().optional(),
+  price: z.string()
+    .nullable()
+    .transform((val) => {
+      if (!val || val.trim() === "") return 0;
+      const num = parseFloat(val);
+      return isNaN(num) ? 0 : num;
+    })
+    .pipe(z.number().min(0, "السعر يجب أن يكون موجباً أو صفراً")),
+  compareAtPrice: z.string()
+    .nullable()
+    .transform((val) => {
+      if (!val || val.trim() === "") return null;
+      const num = parseFloat(val);
+      return isNaN(num) ? null : num;
+    })
+    .pipe(z.number().min(0, "السعر قبل الخصم يجب أن يكون موجباً أو صفراً").nullable())
+    .optional(),
+  stock: z.number().int().min(0, "المخزون لا يمكن أن يكون سالباً").default(0),
+  collectionId: z.string()
+    .nullable()
+    .transform((val) => val ? parseInt(val, 10) : null)
+    .optional(),
+  material: z.string().nullable().optional(),
+  color: z.string().nullable().optional(),
+  dimensions: z.string().nullable().optional(), // Store as stringified JSON
+  weight: z.string()
+    .nullable()
+    .transform((val) => {
+      if (!val || val.trim() === "") return null;
+      const num = parseFloat(val);
+      return isNaN(num) ? null : num;
+    })
+    .refine((val) => val === null || val >= 0, "الوزن يجب أن يكون موجباً أو صفراً")
+    .optional(),
+  featured: z.boolean().default(false),
+  imageUrls: z.array(z.string().url("يجب أن يكون رابط URL صحيحاً")).optional(),
+});
+
+type ProductFormData = z.infer<typeof productFormSchema>;
+
+
 interface ProductFormProps {
   product?: {
     id: number
     name: string
     slug: string
     description: string | null
-    price: string | null
-    compareAtPrice: string | null
+    price: number | null
+    compareAtPrice: number | null
     stock: number
     collectionId: number | null
     material: string | null
     color: string | null
     dimensions: any | null
-    weight: string | null
+    weight: number | null
     featured: boolean
     images: { url: string }[]
   }
@@ -42,201 +92,329 @@ interface ProductFormProps {
 export function ProductForm({ product, collections }: ProductFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    price: "0",
-    compareAtPrice: "",
-    stock: 0,
-    collectionId: undefined as number | undefined,
-    material: "",
-    color: "",
-    dimensions: "",
-    weight: "",
-    featured: false,
-    imageUrls: ["", "", ""],
+  const [generalError, setGeneralError] = useState("")
+
+  const props = useSupabaseUpload({
+    bucketName: "images",
+    path: "/public/products",
+    allowedMimeTypes: ["image/*"],
+    maxFiles: 4,
+    maxFileSize: 1000 * 1000 * 2, // 2MB
   })
 
+  const form = useForm<ProductFormData>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+      name: product?.name || "",
+      slug: product?.slug || "",
+      description: product?.description || "",
+      price: product?.price ? product.price.toString() : "0", // Store as string for input
+      compareAtPrice: product?.compareAtPrice ? product.compareAtPrice.toString() : "", // Store as string for input
+      stock: product?.stock || 0,
+      collectionId: product?.collectionId?.toString() || null,
+      material: product?.material || "",
+      color: product?.color || "",
+      dimensions: product?.dimensions ? JSON.stringify(product.dimensions, null, 2) : "",
+      weight: product?.weight ? product.weight.toString() : "", // Store as string for input
+      featured: product?.featured || false,
+      imageUrls: product?.images.map((img) => img.url) || [],
+    },
+  });
+
+  // Watch imageUrls from form state to update formData for submission
+  const imageUrlsWatcher = form.watch("imageUrls");
+
   useEffect(() => {
-    if (product) {
-      setFormData({
-        name: product.name || "",
-        slug: product.slug || "",
-        description: product.description || "",
-        price: product.price ? parseFloat(product.price).toString() : "0",
-        compareAtPrice: product.compareAtPrice ? parseFloat(product.compareAtPrice).toString() : "",
-        stock: product.stock || 0,
-        collectionId: product.collectionId ?? undefined,
-        material: product.material || "",
-        color: product.color || "",
-        dimensions: product.dimensions ? JSON.stringify(product.dimensions, null, 2) : "",
-        weight: product.weight ? parseFloat(product.weight).toString() : "",
-        featured: product.featured || false,
-        imageUrls: product.images.length > 0 ? product.images.map(img => img.url) : ["", "", ""],
-      })
+    // Pre-fill the dropzone with existing images
+    if (product?.images && product.images.length > 0) {
+      const prefilledFiles = product.images.map((img) => ({
+        name: img.url.split("/").pop()!, // This is the unique name from the URL
+        originalName: img.url.split("/").pop()!, // Assuming original name is the same as unique name for existing data
+        url: img.url,
+      }));
+      props.updateSuccesses(prefilledFiles);
     }
-  }, [product])
+  }, [product, props.updateSuccesses]); // Only run on product prop change and when updateSuccesses is stable
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    const checked = (e.target as HTMLInputElement).checked
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
+  useEffect(() => {
+    // Sync form's imageUrls with successful uploads from useSupabaseUpload hook
+    form.setValue("imageUrls", props.successes.map((s) => s.url));
+  }, [props.successes, form.setValue]);
+
+
+  const handleImageRemove = async (url: string) => {
+    const fileName = url.split("/").pop()!
+    await props.removeFile(fileName)
+    // Update form state directly after removal
+    form.setValue("imageUrls", form.getValues("imageUrls").filter((imgUrl) => imgUrl !== url));
   }
 
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({ ...prev, collectionId: parseInt(value, 10) }))
-  }
-
-  const handleImageUrlsChange = (index: number, value: string) => {
-    const newImageUrls = [...formData.imageUrls]
-    newImageUrls[index] = value
-    setFormData(prev => ({ ...prev, imageUrls: newImageUrls }))
-  }
-
-  const addImageUrl = () => {
-    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, ""] }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true)
-    setError("")
-
-    const dataToSend = {
-      ...formData,
-      price: parseFloat(formData.price) || 0,
-      compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
-      stock: Number(formData.stock) || 0,
-      weight: formData.weight ? parseFloat(formData.weight) : null,
-      imageUrls: formData.imageUrls.filter(url => url), // Filter out empty strings
-    }
+    setGeneralError("")
 
     try {
       if (product) {
-        await updateProduct(product.id, dataToSend)
+        await updateProduct(product.id, data as any) // Cast to any due to potential Zod transform mismatch for server action
       } else {
-        await createProduct(dataToSend)
+        await createProduct(data as any) // Cast to any
       }
       router.push("/dashboard/products")
       router.refresh()
     } catch (err: any) {
-      setError(err.message || "فشل حفظ المنتج")
+      setGeneralError(err.message || "فشل حفظ المنتج")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {generalError && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{generalError}</div>}
 
-      <div className="space-y-2">
-        <Label htmlFor="name">الاسم</Label>
-        <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
-      </div>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="name">الاسم</FormLabel>
+              <FormControl>
+                <Input id="name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="space-y-2">
-        <Label htmlFor="slug">الرابط اللطيف (Slug)</Label>
-        <Input id="slug" name="slug" value={formData.slug} onChange={handleInputChange} required />
-      </div>
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="slug">الرابط اللطيف (Slug)</FormLabel>
+              <FormControl>
+                <Input id="slug" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="space-y-2">
-        <Label htmlFor="description">الوصف</Label>
-        <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} />
-      </div>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="description">الوصف</FormLabel>
+              <FormControl>
+                <Textarea id="description" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="price">السعر</Label>
-          <Input id="price" name="price" type="number" step="0.01" value={formData.price} onChange={handleInputChange} required />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="compareAtPrice">السعر قبل الخصم (اختياري)</Label>
-          <Input id="compareAtPrice" name="compareAtPrice" type="number" step="0.01" value={formData.compareAtPrice} onChange={handleInputChange} />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="stock">المخزون</Label>
-        <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleInputChange} required />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="collectionId">التصنيف</Label>
-        <Select name="collectionId" value={formData.collectionId?.toString()} onValueChange={handleSelectChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="اختر تصنيفاً" />
-          </SelectTrigger>
-          <SelectContent>
-            {collections.map(col => (
-              <SelectItem key={col.id} value={col.id.toString()}>
-                {col.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="material">المادة</Label>
-          <Input id="material" name="material" value={formData.material} onChange={handleInputChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="color">اللون</Label>
-          <Input id="color" name="color" value={formData.color} onChange={handleInputChange} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="dimensions">الأبعاد (JSON)</Label>
-          <Textarea id="dimensions" name="dimensions" value={formData.dimensions} onChange={handleInputChange} placeholder={`مثال: { "width": 120, "height": 80, "depth": 70, "unit": "cm" }`} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="weight">الوزن (كجم)</Label>
-          <Input id="weight" name="weight" type="number" step="0.01" value={formData.weight} onChange={handleInputChange} />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>صور المنتج (URL)</Label>
-        {formData.imageUrls.map((url, index) => (
-          <Input
-            key={index}
-            name={`imageUrl-${index}`}
-            value={url}
-            onChange={(e) => handleImageUrlsChange(index, e.target.value)}
-            placeholder="رابط URL للصورة"
-            className="mt-2"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="price">السعر</FormLabel>
+                <FormControl>
+                  <Input id="price" type="number" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        ))}
-        <Button type="button" variant="outline" className="mt-2" onClick={addImageUrl}>
-          أضف المزيد من الصور
-        </Button>
-      </div>
+          <FormField
+            control={form.control}
+            name="compareAtPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="compareAtPrice">السعر قبل الخصم (اختياري)</FormLabel>
+                <FormControl>
+                  <Input id="compareAtPrice" type="number" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-      <div className="flex items-center space-x-2">
-        <Checkbox id="featured" name="featured" checked={formData.featured} onCheckedChange={(checked) => setFormData(prev => ({...prev, featured: Boolean(checked)}))} />
-        <Label htmlFor="featured" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          منتج مميز (عرض هذا المنتج في الأماكن البارزة)
-        </Label>
-      </div>
+        <FormField
+          control={form.control}
+          name="stock"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="stock">المخزون</FormLabel>
+              <FormControl>
+                <Input id="stock" type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {product ? "تحديث المنتج" : "إنشاء المنتج"}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-          إلغاء
-        </Button>
-      </div>
-    </form>
+        <FormField
+          control={form.control}
+          name="collectionId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="collectionId">التصنيف</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value || ""}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر تصنيفاً" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {collections.map(col => (
+                    <SelectItem key={col.id} value={col.id.toString()}>
+                      {col.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="material"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="material">المادة</FormLabel>
+                <FormControl>
+                  <Input id="material" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="color"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="color">اللون</FormLabel>
+                <FormControl>
+                  <Input id="color" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="dimensions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="dimensions">الأبعاد (JSON)</FormLabel>
+                <FormControl>
+                  <Textarea id="dimensions" {...field} placeholder={`مثال: { "width": 120, "height": 80, "depth": 70, "unit": "cm" }`} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="weight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="weight">الوزن (كجم)</FormLabel>
+                <FormControl>
+                  <Input id="weight" type="number" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="imageUrls"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>صور المنتج</FormLabel>
+              <FormControl>
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {field.value?.map((url) => (
+                      <div key={url} className="relative">
+                        <img src={url} alt="Product image" className="w-full h-auto rounded-lg" />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => handleImageRemove(url)}
+                        >
+                          X
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  {props.successes.length < props.maxFiles && (
+                    <div className="mt-4">
+                      <Dropzone {...props}>
+                        <DropzoneEmptyState />
+                        <DropzoneContent />
+                      </Dropzone>
+                    </div>
+                  )}
+                </>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+
+        <FormField
+          control={form.control}
+          name="featured"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel htmlFor="featured">
+                  منتج مميز (عرض هذا المنتج في الأماكن البارزة)
+                </FormLabel>
+                <FormDescription>
+                  سيتم عرض هذا المنتج في الأماكن البارزة في المتجر.
+                </FormDescription>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+
+        <div className="flex gap-3">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {product ? "تحديث المنتج" : "إنشاء المنتج"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
+            إلغاء
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }

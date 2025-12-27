@@ -6,14 +6,15 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
+import { slugify } from "@/lib/utils"
 
 // Schema for validating product creation/update - must match frontend form
 const productSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
-  slug: z.string().min(1, "الرابط اللطيف مطلوب"),
+  slug: z.string().optional(), // Make slug optional
   description: z.string().nullable(),
-  price: z.number().positive("السعر يجب أن يكون موجباً"),
-  compareAtPrice: z.number().positive("السعر يجب أن يكون موجباً").optional().nullable(),
+  price: z.number().min(0, "السعر يجب أن يكون موجباً أو صفراً"),
+  compareAtPrice: z.number().min(0, "السعر يجب أن يكون موجباً أو صفراً").optional().nullable(),
   stock: z.number().int().min(0, "المخزون لا يمكن أن يكون سالباً"),
   collectionId: z.number().int().positive("يجب اختيار تصنيف").optional().nullable(),
   material: z.string().nullable(),
@@ -35,12 +36,16 @@ export async function createProduct(data: ProductData) {
     throw new Error("Failed to create product due to validation errors.")
   }
 
+  let { imageUrls, ...productData } = parsed.data
+  if (!productData.slug) {
+    productData.slug = slugify(productData.name)
+  }
+
   try {
-    const { imageUrls, ...productData } = parsed.data // Extract imageUrls
     const [newProduct] = await db.insert(products).values(productData).returning()
 
-    if (newProduct && parsed.data.imageUrls && parsed.data.imageUrls.length > 0) {
-      const imagesToInsert = parsed.data.imageUrls
+    if (newProduct && imageUrls && imageUrls.length > 0) {
+      const imagesToInsert = imageUrls
         .filter(url => url) // Filter out empty strings
         .map((url, index) => ({
           productId: newProduct.id,
@@ -69,14 +74,18 @@ export async function updateProduct(id: number, data: ProductData) {
     throw new Error("Failed to update product due to validation errors.")
   }
 
+  let { imageUrls, ...productData } = parsed.data
+  if (!productData.slug) {
+    productData.slug = slugify(productData.name)
+  }
+
   try {
-    const { imageUrls, ...productData } = parsed.data // Extract imageUrls
     await db.update(products).set(productData).where(eq(products.id, id))
 
     // Handle images: delete existing and insert new ones
     await db.delete(productImages).where(eq(productImages.productId, id))
-    if (parsed.data.imageUrls && parsed.data.imageUrls.length > 0) {
-      const imagesToInsert = parsed.data.imageUrls
+    if (imageUrls && imageUrls.length > 0) {
+      const imagesToInsert = imageUrls
         .filter(url => url) // Filter out empty strings
         .map((url, index) => ({
           productId: id,

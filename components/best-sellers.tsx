@@ -2,55 +2,19 @@ import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-const bestSellers = [
-  {
-    id: 5,
-    name: "كرسي استرخاء جلد",
-    price: "5,500",
-    image: "/modern-leather-lounge-chair-brown.avif",
-    category: "غرف المعيشة",
-  },
-  {
-    id: 6,
-    name: "رف كتب معاصر",
-    price: "3,800",
-    image: "/modern-wooden-bookshelf-minimalist.avif",
-    category: "المكاتب",
-  },
-  {
-    id: 7,
-    name: "طاولة قهوة رخامية",
-    price: "4,200",
-    oldPrice: "5,500",
-    image: "/marble-coffee-table.avif",
-    category: "غرف المعيشة",
-    badge: "خصم",
-  },
-  {
-    id: 8,
-    name: "مكتب عمل حديث",
-    price: "6,800",
-    image: "/modern-office-desk.avif",
-    category: "المكاتب",
-  },
-  {
-    id: 9,
-    name: "كرسي طعام مخملي",
-    price: "2,100",
-    image: "/velvet-dining-chair.avif",
-    category: "غرف الطعام",
-  },
-  {
-    id: 10,
-    name: "طاولة جانبية ذهبية",
-    price: "1,900",
-    image: "/gold-side-table.avif",
-    category: "غرف المعيشة",
-    badge: "جديد",
-  },
-]
+type Product = {
+  id: number
+  name: string
+  price: string
+  images: { url: string }[]
+  compareAtPrice?: string | null
+}
 
-export function BestSellers() {
+interface BestSellersProps {
+  products: Product[]
+}
+
+export function BestSellers({ products }: BestSellersProps) {
   return (
     <section className="py-20 md:py-24 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -69,7 +33,7 @@ export function BestSellers() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {bestSellers.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

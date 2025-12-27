@@ -2,41 +2,21 @@ import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-const products = [
-  {
-    id: 1,
-    name: "أريكة عصرية فاخرة",
-    price: "12,500",
-    image: "/modern-luxury-sofa-beige-fabric.avif",
-    category: "غرف المعيشة",
-    badge: "جديد",
-  },
-  {
-    id: 2,
-    name: "طاولة طعام خشبية",
-    price: "8,900",
-    image: "/elegant-wooden-dining-table-modern.avif",
-    category: "غرف الطعام",
-  },
-  {
-    id: 3,
-    name: "سرير ملكي مودرن",
-    price: "15,000",
-    oldPrice: "18,000",
-    image: "/modern-luxury-king-bed-upholstered.avif",
-    category: "غرف النوم",
-    badge: "خصم",
-  },
-  // {
-  //   id: 4,
-  //   name: "خزانة ملابس واسعة",
-  //   price: "11,200",
-  //   image: "/modern-wardrobe-closet-wood-white.jpg",
-  //   category: "غرف النوم",
-  // },
-]
+type Product = {
+  id: number
+  name: string
+  price: string
+  images: { url: string }[]
+  compareAtPrice?: string | null
+  // category: string; // no longer on product
+  // badge?: string; // no longer on product
+}
 
-export function FeaturedProducts() {
+interface FeaturedProductsProps {
+  products: Product[]
+}
+
+export function FeaturedProducts({ products }: FeaturedProductsProps) {
   return (
     <section id="products" className="py-20 md:py-24 bg-white">
       <div className="container mx-auto px-4">

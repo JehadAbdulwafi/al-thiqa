@@ -5,46 +5,31 @@ import { ProductDetails } from "@/components/product-details"
 import { RelatedProducts } from "@/components/related-products"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { getProductById, getRelatedProducts } from "@/lib/queries"
+import { notFound } from "next/navigation"
 
-// Mock product data - will be dynamic in the future
-const productData: Record<string, any> = {
-  "1": {
-    id: "1",
-    name: "أريكة مودرن بيج",
-    price: 4500,
-    originalPrice: 5200,
-    description:
-      "أريكة عصرية فاخرة مصنوعة من القماش الفاخر عالي الجودة. تصميم مريح وأنيق يناسب أي ديكور عصري. مثالية لغرف المعيشة الواسعة.",
-    features: [
-      "قماش عالي الجودة مقاوم للبقع",
-      "إطار خشبي صلب متين",
-      "وسائد مريحة قابلة للإزالة",
-      "أرجل خشبية قوية",
-      "ضمان 5 سنوات",
-    ],
-    specs: {
-      الأبعاد: "220 × 90 × 85 سم",
-      المادة: "قماش وخشب",
-      اللون: "بيج",
-      الوزن: "45 كجم",
-      "عدد المقاعد": "3 أشخاص",
-    },
-    images: [
-      "/modern-luxury-sofa-beige-fabric.avif",
-      "/beige-sofa-side-view.avif",
-      "/beige-sofa-detail-view.avif",
-      "/beige-sofa-back-view.avif",
-    ],
-    rating: 4.8,
-    reviews: 124,
-    stock: 15,
-    category: "غرف المعيشة",
-    badge: "خصم 13%",
-  },
+type ProductPageProps = {
+  params: Promise<{
+    id: string
+  }>
 }
 
-export default function ProductPage({ params }: { params: { id: string } }) {
-  const product = productData[params.id] || productData["1"]
+export default async function ProductPage({ params }: ProductPageProps) {
+  const resolvedParams = await params
+  const productId = parseInt(resolvedParams.id, 10)
+  if (isNaN(productId)) {
+    notFound()
+  }
+
+  const product = await getProductById(productId)
+
+  if (!product) {
+    notFound()
+  }
+
+  const relatedProducts = product.collectionId
+    ? await getRelatedProducts(product.collectionId, product.id)
+    : []
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">
@@ -62,8 +47,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             المجموعات
           </Link>
           <ArrowLeft className="w-4 h-4 rotate-180" />
-          <Link href="/collections/living-room" className="hover:text-primary transition-colors">
-            {product.category}
+          <Link
+            href={`/collections/${product.collection?.slug || ""}`}
+            className="hover:text-primary transition-colors"
+          >
+            {product.collection?.name || "غير مصنف"}
           </Link>
           <ArrowLeft className="w-4 h-4 rotate-180" />
           <span className="text-gray-900 font-medium truncate max-w-[200px]">{product.name}</span>
@@ -73,7 +61,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <ProductDetails product={product} />
 
         {/* Related Products */}
-        <RelatedProducts currentProductId={params.id} category={product.category} />
+        <RelatedProducts products={relatedProducts} />
       </main>
 
       <Footer />

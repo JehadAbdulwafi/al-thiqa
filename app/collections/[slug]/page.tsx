@@ -5,43 +5,30 @@ import { CollectionFilters } from "@/components/collection-filters"
 import { ProductGrid } from "@/components/product-grid"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { getCollectionBySlug, getProductsByCollection } from "@/lib/queries"
+import { notFound } from "next/navigation"
 
-// Mock data - will be dynamic in the future
-const collectionData: Record<string, any> = {
-  "living-room": {
-    title: "غرف المعيشة",
-    description: "أثاث عصري وأنيق لغرف المعيشة",
-    itemCount: 45,
-  },
-  bedroom: {
-    title: "غرف النوم",
-    description: "راحة وأناقة لغرف النوم",
-    itemCount: 38,
-  },
-  "dining-room": {
-    title: "غرف الطعام",
-    description: "طاولات وكراسي طعام فاخرة",
-    itemCount: 32,
-  },
-  office: {
-    title: "المكاتب",
-    description: "أثاث مكتبي مريح وعملي",
-    itemCount: 28,
-  },
-  outdoor: {
-    title: "الأثاث الخارجي",
-    description: "أثاث خارجي مقاوم للعوامل الجوية",
-    itemCount: 24,
-  },
-  kids: {
-    title: "غرف الأطفال",
-    description: "أثاث آمن وملون للأطفال",
-    itemCount: 19,
-  },
+type CollectionPageProps = {
+  params: Promise<{
+    slug: string
+  }>
+  searchParams: Promise<{
+    sortBy?: string
+  }>
 }
 
-export default function CollectionPage({ params }: { params: { slug: string } }) {
-  const collection = collectionData[params.slug] || collectionData["living-room"]
+export default async function CollectionPage({ params, searchParams }: CollectionPageProps) {
+  const resolvedParams = await params
+  const resolvedSearchParams = await searchParams
+
+  const collection = await getCollectionBySlug(resolvedParams.slug)
+  const products = await getProductsByCollection(resolvedParams.slug, {
+    sortBy: resolvedSearchParams?.sortBy,
+  })
+
+  if (!collection) {
+    notFound()
+  }
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">
@@ -59,12 +46,12 @@ export default function CollectionPage({ params }: { params: { slug: string } })
             المجموعات
           </Link>
           <ArrowLeft className="w-4 h-4 rotate-180" />
-          <span className="text-gray-900 font-medium">{collection.title}</span>
+          <span className="text-gray-900 font-medium">{collection.name}</span>
         </nav>
 
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{collection.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{collection.name}</h1>
           <p className="text-gray-600">{collection.description}</p>
         </div>
 
@@ -77,7 +64,7 @@ export default function CollectionPage({ params }: { params: { slug: string } })
 
           {/* Product Grid */}
           <div className="flex-1">
-            <ProductGrid collectionSlug={params.slug} />
+            <ProductGrid products={products} />
           </div>
         </div>
       </main>

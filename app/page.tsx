@@ -6,18 +6,23 @@ import { BlogSection } from "@/components/blog-section"
 import { Footer } from "@/components/footer"
 import { Navbar } from "@/components/navbar"
 import { AnnouncementBar } from "@/components/announcement-bar"
+import { getBestSellers, getBlogPosts, getFeaturedProducts } from "@/lib/queries"
 
-export default function Home() {
+export default async function Home() {
+  const featuredProducts = await getFeaturedProducts()
+  const bestSellers = await getBestSellers()
+  const blogPosts = await getBlogPosts()
+
   return (
     <div className="min-h-screen bg-white" dir="rtl">
       <AnnouncementBar />
       <Navbar />
       <main>
         <HeroCarousel />
-        <FeaturedProducts />
+        <FeaturedProducts products={featuredProducts} />
         <CategoriesSection />
-        <BestSellers />
-        <BlogSection />
+        <BestSellers products={bestSellers} />
+        <BlogSection posts={blogPosts} />
       </main>
       <Footer />
     </div>

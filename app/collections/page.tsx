@@ -4,52 +4,10 @@ import { Footer } from "@/components/footer"
 import { CollectionCard } from "@/components/collection-card"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { getAllCollections } from "@/lib/queries"
 
-export default function CollectionsPage() {
-  const collections = [
-    {
-      id: "living-room",
-      title: "غرف المعيشة",
-      description: "أثاث عصري وأنيق لغرف المعيشة",
-      image: "/modern-living-room.avif",
-      itemCount: 45,
-    },
-    {
-      id: "bedroom",
-      title: "غرف النوم",
-      description: "راحة وأناقة لغرف النوم",
-      image: "/luxury-bedroom-furniture.avif",
-      itemCount: 38,
-    },
-    {
-      id: "dining-room",
-      title: "غرف الطعام",
-      description: "طاولات وكراسي طعام فاخرة",
-      image: "/elegant-dining-room-furniture.avif",
-      itemCount: 32,
-    },
-    {
-      id: "office",
-      title: "المكاتب",
-      description: "أثاث مكتبي مريح وعملي",
-      image: "/modern-office-furniture.avif",
-      itemCount: 28,
-    },
-    {
-      id: "outdoor",
-      title: "الأثاث الخارجي",
-      description: "أثاث خارجي مقاوم للعوامل الجوية",
-      image: "/outdoor-patio-furniture.avif",
-      itemCount: 24,
-    },
-    {
-      id: "kids",
-      title: "غرف الأطفال",
-      description: "أثاث آمن وملون للأطفال",
-      image: "/colorful-kids-room-furniture.avif",
-      itemCount: 19,
-    },
-  ]
+export default async function CollectionsPage() {
+  const collections = await getAllCollections()
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">

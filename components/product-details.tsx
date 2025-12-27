@@ -5,22 +5,24 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Heart, Star, Minus, Plus, Share2, Truck, Shield, RotateCcw } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formatPrice } from "@/lib/utils"
+
+type Product = {
+  id: number
+  name: string
+  description: string | null
+  price: string | null
+  compareAtPrice: string | null
+  stock: number
+  material: string | null
+  color: string | null
+  dimensions: any | null
+  weight: string | null
+  images: { id: number; productId: number; url: string; altText: string | null; order: number | null; createdAt: Date }[]
+}
 
 interface ProductDetailsProps {
-  product: {
-    id: string
-    name: string
-    price: number
-    originalPrice?: number
-    description: string
-    features: string[]
-    specs: Record<string, string>
-    images: string[]
-    rating: number
-    reviews: number
-    stock: number
-    badge?: string
-  }
+  product: Product
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
@@ -28,9 +30,18 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
 
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0
+  const priceNum = parseFloat(product.price || "0")
+  const compareAtPriceNum = parseFloat(product.compareAtPrice || "0")
+  const discount =
+    compareAtPriceNum > priceNum ? Math.round(((compareAtPriceNum - priceNum) / compareAtPriceNum) * 100) : 0
+  const hasDiscount = discount > 0
+
+  // Reconstruct specs object
+  const specs: Record<string, string> = {}
+  if (product.dimensions?.value) specs["الأبعاد"] = product.dimensions.value
+  if (product.material) specs["المادة"] = product.material
+  if (product.color) specs["اللون"] = product.color
+  if (product.weight) specs["الوزن"] = `${product.weight} كجم`
 
   return (
     <div>
@@ -40,15 +51,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           {/* Main Image */}
           <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
             <Image
-              src={product.images[selectedImage] || "/placeholder.svg"}
+              src={product.images[selectedImage]?.url || "/placeholder.svg"}
               alt={product.name}
               fill
               className="object-cover"
               priority
             />
-            {product.badge && (
+            {hasDiscount && (
               <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10">
-                {product.badge}
+                خصم {discount}%
               </div>
             )}
           </div>
@@ -57,15 +68,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <div className="grid grid-cols-4 gap-3">
             {product.images.map((image, index) => (
               <button
-                key={index}
+                key={image.id}
                 onClick={() => setSelectedImage(index)}
                 className={`relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${
                   selectedImage === index ? "border-primary ring-2 ring-primary/20" : "border-transparent"
                 }`}
               >
                 <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`${product.name} - ${index + 1}`}
+                  src={image.url || "/placeholder.svg"}
+                  alt={image.altText || `${product.name} - ${index + 1}`}
                   fill
                   className="object-cover"
                 />
@@ -79,31 +90,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">{product.name}</h1>
 
-            {/* Rating & Reviews */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-600">
-                {product.rating} ({product.reviews} تقييم)
-              </span>
-            </div>
-
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-2">
               <div className="text-4xl font-bold text-gray-900">
-                {product.price.toLocaleString("ar-SA")} <span className="text-lg font-normal text-gray-600">د.ل</span>
+                {formatPrice(product.price)} <span className="text-lg font-normal text-gray-600">د.ل</span>
               </div>
-              {product.originalPrice && (
+              {hasDiscount && (
                 <>
-                  <div className="text-xl text-gray-400 line-through">
-                    {product.originalPrice.toLocaleString("ar-SA")} د.ل
-                  </div>
+                  <div className="text-xl text-gray-400 line-through">{formatPrice(product.compareAtPrice)} د.ل</div>
                   <div className="text-sm font-semibold text-red-600 bg-red-50 px-2 py-1 rounded">وفر {discount}%</div>
                 </>
               )}
@@ -183,14 +177,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
       </div>
 
       {/* Additional Info Tabs */}
-      <Tabs defaultValue="features" className="w-full">
+      <Tabs defaultValue="specs" className="w-full">
         <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-          <TabsTrigger
-            value="features"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
-          >
-            المميزات
-          </TabsTrigger>
           <TabsTrigger
             value="specs"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
@@ -201,24 +189,13 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             value="reviews"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
           >
-            التقييمات ({product.reviews})
+            التقييمات
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="features" className="py-8">
-          <ul className="space-y-3">
-            {product.features.map((feature, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                <span className="text-gray-700">{feature}</span>
-              </li>
-            ))}
-          </ul>
-        </TabsContent>
-
         <TabsContent value="specs" className="py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(product.specs).map(([key, value]) => (
+            {Object.entries(specs).map(([key, value]) => (
               <div key={key} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-900">{key}</span>
                 <span className="text-gray-600">{value}</span>

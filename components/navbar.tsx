@@ -24,7 +24,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <Image src="/logo.png" alt="الثقة للأثاث - Ateka" width={60} height={60} className="object-contain" />
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold md:block hidden">
               <span className="text-gray-900 ml-1">الثقة</span>
               <span className="text-[#8B7355]">للأثاث</span>
             </div>
@@ -50,12 +50,6 @@ export function Navbar() {
             </Button>
             <Button variant="ghost" size="icon" className="hover:bg-gray-100">
               <User className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="relative hover:bg-gray-100">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#8B7355] text-white text-xs flex items-center justify-center font-medium">
-                0
-              </span>
             </Button>
 
             {/* Mobile Menu Button */}

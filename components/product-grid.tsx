@@ -1,103 +1,19 @@
 "use client"
 
-import { useState } from "react"
 import { ProductCard } from "@/components/product-card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal } from "lucide-react"
 
+// The data for a single product card, matching the expected props for ProductCard
+type Product = any // Using 'any' for now to match the refactored ProductCard
+
 interface ProductGridProps {
-  collectionSlug: string
+  products: Product[]
 }
 
-// Mock product data
-const products = [
-  {
-    id: "1",
-    name: "أريكة مودرن بيج",
-    price: 4500,
-    originalPrice: 5200,
-    image: "/modern-luxury-sofa-beige-fabric.avif",
-    badge: "خصم 13%",
-    rating: 4.8,
-    reviews: 124,
-  },
-  {
-    id: "2",
-    name: "طاولة قهوة رخام",
-    price: 2800,
-    image: "/marble-coffee-table.avif",
-    rating: 4.9,
-    reviews: 87,
-  },
-  {
-    id: "3",
-    name: "كرسي طعام مخمل",
-    price: 850,
-    originalPrice: 1100,
-    image: "/velvet-dining-chair.avif",
-    badge: "خصم 23%",
-    rating: 4.7,
-    reviews: 156,
-  },
-  {
-    id: "4",
-    name: "مكتب عصري",
-    price: 3200,
-    image: "/modern-office-desk.avif",
-    rating: 4.6,
-    reviews: 93,
-  },
-  {
-    id: "5",
-    name: "طاولة جانبية ذهبية",
-    price: 1200,
-    image: "/gold-side-table.avif",
-    badge: "جديد",
-    rating: 4.8,
-    reviews: 64,
-  },
-  {
-    id: "6",
-    name: "خزانة ملابس خشبية",
-    price: 5800,
-    image: "/wooden-wardrobe-closet.avif",
-    rating: 4.9,
-    reviews: 112,
-  },
-  {
-    id: "7",
-    name: "كرسي استرخاء جلد",
-    price: 3900,
-    originalPrice: 4500,
-    image: "/leather-recliner-chair.avif",
-    badge: "خصم 13%",
-    rating: 4.7,
-    reviews: 89,
-  },
-  {
-    id: "8",
-    name: "رف كتب معدني",
-    price: 1800,
-    image: "/metal-bookshelf-industrial.avif",
-    rating: 4.5,
-    reviews: 73,
-  },
-  {
-    id: "9",
-    name: "كنبة زاوية رمادية",
-    price: 7200,
-    image: "/gray-corner-sectional-sofa.avif",
-    badge: "الأكثر مبيعاً",
-    rating: 4.9,
-    reviews: 203,
-  },
-]
-
-export function ProductGrid({ collectionSlug }: ProductGridProps) {
-  const [sortBy, setSortBy] = useState("featured")
-  const [showMobileFilters, setShowMobileFilters] = useState(false)
-
+export function ProductGrid({ products }: ProductGridProps) {
+  // Sorting and filtering state will be managed by the parent page via URL search params
   return (
     <div>
       {/* Toolbar */}
@@ -113,8 +29,8 @@ export function ProductGrid({ collectionSlug }: ProductGridProps) {
             فلاتر
           </Button>
 
-          {/* Sort Dropdown */}
-          <Select value={sortBy} onValueChange={setSortBy}>
+          {/* Sort Dropdown - State will be handled by parent page */}
+          <Select defaultValue="featured">
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="الترتيب حسب" />
             </SelectTrigger>

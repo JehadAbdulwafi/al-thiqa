@@ -10,124 +10,201 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createCollection, updateCollection } from "@/app/actions/collections"
 import { Loader2 } from "lucide-react"
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/dropzone"
+import { useSupabaseUpload } from "@/hooks/use-supabase-upload"
+
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
+
+const collectionFormSchema = z.object({
+  name: z.string().min(1, "الاسم مطلوب"),
+  description: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
+  featured: z.boolean().default(false),
+});
+
+type CollectionFormData = z.infer<typeof collectionFormSchema>;
+
 
 interface CollectionFormProps {
   collection?: {
     id: number
     name: string
-    slug: string
     description: string | null
     image: string | null
     featured: boolean
-    order: number | null
   }
 }
 
 export function CollectionForm({ collection }: CollectionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    image: "",
-    featured: false,
-    order: 0,
+  const [generalError, setGeneralError] = useState("")
+
+  const props = useSupabaseUpload({
+    bucketName: 'images',
+    path: '/public',
+    allowedMimeTypes: ['image/*'],
+    maxFiles: 1,
+    maxFileSize: 1000 * 1000 * 2, // 2MB,
   })
+
+  const form = useForm<CollectionFormData>({
+    resolver: zodResolver(collectionFormSchema),
+    defaultValues: {
+      name: collection?.name || "",
+      description: collection?.description || "",
+      image: collection?.image || "",
+      featured: collection?.featured || false,
+    },
+  });
 
   useEffect(() => {
     if (collection) {
-      setFormData({
-        name: collection.name || "",
-        slug: collection.slug || "",
-        description: collection.description || "",
-        image: collection.image || "",
-        featured: collection.featured || false,
-        order: collection.order || 0,
-      })
+      // Pre-fill the dropzone with existing image if available
+      if (collection.image) {
+        props.updateSuccesses([{
+          name: collection.image.split('/').pop()!, // This is the unique name
+          originalName: collection.image.split('/').pop()!, // Assuming original name is the same as unique name for existing data
+          url: collection.image
+        }])
+      }
     }
-  }, [collection])
+  }, [collection, props.updateSuccesses])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    const checked = (e.target as HTMLInputElement).checked
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
+  useEffect(() => {
+    // This useEffect handles updates when a new image is uploaded via the dropzone
+    if (props.successes.length > 0 && props.successes[0].url !== form.getValues('image')) {
+      console.log('Uploaded image URLs:', props.successes.map(s => s.url));
+      // Assuming only one image can be uploaded for a collection,
+      // update the form with the first successful upload's URL
+      if (props.successes[0]?.url) {
+        form.setValue('image', props.successes[0].url);
+      }
+    }
+  }, [props.successes, form.setValue, form.getValues]);
+
+  const handleImageRemove = async () => {
+    const imageUrl = form.getValues('image');
+    if (imageUrl) {
+      const uniqueFileName = imageUrl.split('/').pop()!;
+      await props.removeFile(uniqueFileName);
+      form.setValue('image', ''); // Clear the image in the form
+    }
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const onSubmit = async (data: CollectionFormData) => {
     setIsSubmitting(true)
-    setError("")
-
-    const dataToSend = {
-      ...formData,
-      order: Number(formData.order) || undefined,
-    }
+    setGeneralError("")
 
     try {
       if (collection) {
-        await updateCollection(collection.id, dataToSend)
+        await updateCollection(collection.id, data as any)
       } else {
-        await createCollection(dataToSend)
+        await createCollection(data as any)
       }
       router.push("/dashboard/collections")
       router.refresh()
     } catch (err: any) {
-      setError(err.message || "فشل حفظ المجموعة")
+      setGeneralError(err.message || "فشل حفظ المجموعة")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {generalError && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{generalError}</div>}
 
-      <div className="space-y-2">
-        <Label htmlFor="name">الاسم</Label>
-        <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
-      </div>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="name">الاسم</FormLabel>
+              <FormControl>
+                <Input id="name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="space-y-2">
-        <Label htmlFor="slug">الرابط اللطيف (Slug)</Label>
-        <Input id="slug" name="slug" value={formData.slug} onChange={handleInputChange} required />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">الوصف</Label>
-        <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="image">صورة (URL)</Label>
-        <Input id="image" name="image" value={formData.image} onChange={handleInputChange} />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="order">الترتيب</Label>
-        <Input id="order" name="order" type="number" value={formData.order} onChange={handleInputChange} />
-      </div>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="description">الوصف</FormLabel>
+              <FormControl>
+                <Textarea id="description" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="flex items-center space-x-2">
-        <Checkbox id="featured" name="featured" checked={formData.featured} onCheckedChange={(checked) => setFormData(prev => ({...prev, featured: Boolean(checked)}))} />
-        <Label htmlFor="featured" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          مجموعة مميزة (عرض هذه المجموعة في الأماكن البارزة)
-        </Label>
-      </div>
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {collection ? "تحديث المجموعة" : "إنشاء المجموعة"}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-          إلغاء
-        </Button>
-      </div>
-    </form>
+
+        <FormField
+          control={form.control}
+          name="featured"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel htmlFor="featured">
+                  مجموعة مميزة (عرض هذه المجموعة في الأماكن البارزة)
+                </FormLabel>
+                <FormDescription>
+                  سيتم عرض هذه المجموعة في الأماكن البارزة في المتجر.
+                </FormDescription>
+              </div >
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="w-[500px]">
+          {form.watch('image') ? (
+            <div className="relative">
+              <img src={form.watch('image')!} alt="Collection image" className="w-full h-auto rounded-lg" />
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 left-2"
+                onClick={handleImageRemove}
+              >
+                X
+              </Button>
+            </div>
+          ) : (
+            <Dropzone {...props}>
+              <DropzoneEmptyState />
+              <DropzoneContent />
+            </Dropzone>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {collection ? "تحديث المجموعة" : "إنشاء المجموعة"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
+            إلغاء
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }

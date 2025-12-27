@@ -35,7 +35,6 @@ export const collections = pgTable("collections", {
   description: text("description"),
   image: text("image"),
   featured: boolean("featured").default(false),
-  order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })

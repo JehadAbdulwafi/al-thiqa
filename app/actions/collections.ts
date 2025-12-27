@@ -6,15 +6,15 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
+import { slugify } from "@/lib/utils"
 
 // Schema for validating collection creation/update
 const collectionSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
-  slug: z.string().min(1, "الرابط اللطيف مطلوب"),
+  slug: z.string().optional(), // Make slug optional
   description: z.string().nullable(),
   image: z.string().nullable(),
   featured: z.boolean().default(false),
-  order: z.number().int().positive().optional(),
 })
 
 type CollectionData = z.infer<typeof collectionSchema>
@@ -28,8 +28,14 @@ export async function createCollection(data: CollectionData) {
     throw new Error("Failed to create collection due to validation errors.")
   }
 
+  let collectionData = parsed.data
+
+  if (!collectionData.slug) {
+    collectionData.slug = slugify(collectionData.name)
+  }
+
   try {
-    await db.insert(collections).values(parsed.data)
+    await db.insert(collections).values(collectionData)
   } catch (error) {
     console.error("Error creating collection:", error)
     throw new Error("Failed to create collection.")
@@ -48,15 +54,19 @@ export async function updateCollection(id: number, data: CollectionData) {
     throw new Error("Failed to update collection due to validation errors.")
   }
 
+  let collectionData = parsed.data
+  if (!collectionData.slug) {
+    collectionData.slug = slugify(collectionData.name)
+  }
+
   try {
-    await db.update(collections).set(parsed.data).where(eq(collections.id, id))
+    await db.update(collections).set(collectionData).where(eq(collections.id, id))
   } catch (error) {
     console.error("Error updating collection:", error)
     throw new Error("Failed to update collection.")
   }
 
   revalidatePath("/dashboard/collections")
-  revalidatePath(`/collections/${data.slug}`)
   redirect("/dashboard/collections")
 }
 

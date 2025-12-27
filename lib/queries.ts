@@ -86,7 +86,7 @@ export async function getAllCollections() {
     .from(collections)
     .leftJoin(products, eq(collections.id, products.collectionId))
     .groupBy(collections.id)
-    .orderBy(desc(collections.order))
+    .orderBy(desc(collections.name))
 
   console.log(`Found ${data.length} collections.`)
   return data

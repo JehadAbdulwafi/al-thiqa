@@ -21,7 +21,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <main className="container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
       <p className="text-gray-600 text-sm mb-6">
         بواسطة {post.author?.name || "غير معروف"} في{" "}
@@ -36,6 +36,6 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         <p>{post.content}</p>
         {/* You might want to render markdown here if content is markdown */}
       </div>
-    </div>
+    </main>
   )
 }

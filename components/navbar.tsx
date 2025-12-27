@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [

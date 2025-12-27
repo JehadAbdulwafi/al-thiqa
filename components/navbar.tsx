@@ -5,8 +5,9 @@ import { Menu, ShoppingCart, X, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-export function Navbar() {
+export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [
@@ -48,7 +49,7 @@ export function Navbar() {
             <Button variant="ghost" size="icon" className="hover:bg-gray-100">
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+            <Button variant="ghost" size="icon" className="hover:bg-gray-100" onClick={() => router.push(isLoggedIn ? "/dashboard" : "/login")}>
               <User className="h-5 w-5" />
             </Button>
 

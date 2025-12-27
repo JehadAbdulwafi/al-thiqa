@@ -1,22 +1,20 @@
-import { HeroCarousel } from "@/components/hero-carousel"
-import { FeaturedProducts } from "@/components/featured-products"
-import { CategoriesSection } from "@/components/categories-section"
-import { BestSellers } from "@/components/best-sellers"
-import { BlogSection } from "@/components/blog-section"
-import { Footer } from "@/components/footer"
 import { Navbar } from "@/components/navbar"
 import { AnnouncementBar } from "@/components/announcement-bar"
 import { getBestSellers, getBlogPosts, getFeaturedProducts } from "@/lib/queries"
+import { getSession } from "@/lib/auth"
 
 export default async function Home() {
   const featuredProducts = await getFeaturedProducts()
   const bestSellers = await getBestSellers()
   const blogPosts = await getBlogPosts()
+  const session = await getSession()
+  const isLoggedIn = !!session?.user
+
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">
       <AnnouncementBar />
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} />
       <main>
         <HeroCarousel />
         <FeaturedProducts products={featuredProducts} />

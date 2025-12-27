@@ -5,7 +5,17 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // images: { unoptimized: true }
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'rfdnnkfkubuhotenhptg.supabase.co',
+        port: '',
+        pathname: '**',
+      },
+    ],
+  }
 };
 
 export default nextConfig;

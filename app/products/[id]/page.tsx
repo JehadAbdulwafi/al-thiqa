@@ -15,13 +15,9 @@ type ProductPageProps = {
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const resolvedParams = await params
-  const productId = parseInt(resolvedParams.id, 10)
-  if (isNaN(productId)) {
-    notFound()
-  }
+  const { id } = await params
 
-  const product = await getProductById(productId)
+  const product = await getProductById(id)
 
   if (!product) {
     notFound()

@@ -16,6 +16,8 @@ export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
   const navItems = [
     { label: "الرئيسية", href: "/" },
     { label: "المنتجات", href: "/products" },
+    { label: "المجموعات", href: "/collections" },
+    { label: "المدونة", href: "/blog" },
     { label: "عن الشركة", href: "/about" },
     { label: "اتصل بنا", href: "/contact" },
   ]

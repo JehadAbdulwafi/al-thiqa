@@ -1,6 +1,7 @@
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
 
 type Product = {
   id: number
@@ -21,13 +22,15 @@ export function BestSellers({ products }: BestSellersProps) {
         <div className="mb-12">
           <div className="flex items-end justify-between mb-3">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900">الأكثر مبيعاً</h2>
-            <Button
-              variant="link"
-              className="text-[#8B7355] hover:text-[#6F5B44] hidden md:flex items-center gap-2 text-base"
-            >
-              عرض الكل
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            <Link href="/products">
+              <Button
+                variant="link"
+                className="text-[#8B7355] hover:text-[#6F5B44] hidden md:flex items-center gap-2 text-base"
+              >
+                عرض الكل
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
           <p className="text-gray-600 text-lg">القطع المفضلة لدى عملائنا</p>
         </div>

@@ -2,7 +2,6 @@
 
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 
 export function Footer() {
   return (
@@ -84,7 +83,7 @@ export function Footer() {
             </ul>
           </div>
 
-           {/* Social Media */}
+          {/* Social Media */}
           <div>
             <h4 className="font-semibold text-white mb-5 text-lg">تابعنا</h4>
             <p className="text-sm text-gray-400 mb-4">تواصل معنا عبر وسائل التواصل الاجتماعي</p>

@@ -267,6 +267,69 @@ export async function getAllProducts() {
 }
 
 /**
+ * Fetches all products with optional filters.
+ * @returns A promise that resolves to an array of all products with filters applied.
+ */
+export async function getAllProductsWithFilters(options?: {
+  sortBy?: string,
+  minPrice?: number,
+  maxPrice?: number,
+  colors?: string[],
+  materials?: string[],
+}) {
+  console.log(`Fetching all products with filters: ${JSON.stringify(options)}`)
+
+  let orderBy: any[] = [
+    desc(products.featured),
+    desc(products.createdAt),
+  ]
+
+  switch (options?.sortBy) {
+    case "price-low":
+      orderBy = [asc(products.price), desc(products.createdAt)]
+      break
+    case "price-high":
+      orderBy = [desc(products.price), desc(products.createdAt)]
+      break
+    case "newest":
+      orderBy = [desc(products.createdAt)]
+      break
+  }
+
+  const whereConditions: any[] = []
+
+  if (options?.minPrice !== undefined) {
+    whereConditions.push(sql`${products.price} >= ${options.minPrice}`)
+  }
+  if (options?.maxPrice !== undefined) {
+    whereConditions.push(sql`${products.price} <= ${options.maxPrice}`)
+  }
+  if (options?.colors && options.colors.length > 0) {
+    const colorConditions = options.colors.map(color => sql`${products.color} = ${color}`)
+    whereConditions.push(or(...colorConditions))
+  }
+  if (options?.materials && options.materials.length > 0) {
+    const materialConditions = options.materials.map(material => sql`${products.material} = ${material}`)
+    whereConditions.push(or(...materialConditions))
+  }
+
+  const data = await db.query.products.findMany({
+    where: (products, { and }) => and(...whereConditions),
+    orderBy: orderBy,
+    with: {
+      images: {
+        columns: {
+          url: true,
+        },
+        limit: 1,
+      },
+    },
+  })
+  console.log(`Found ${data.length} products with filters.`)
+  return data
+}
+
+/**
  * Fetches collections for use in forms (e.g., product creation/edit).
  * @returns A promise that resolves to an array of collections with only id, name, and slug.
  */

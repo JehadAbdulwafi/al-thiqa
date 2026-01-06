@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
+import { logActivity } from "./activity"
 
 const privacyPolicySchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
@@ -38,12 +39,14 @@ export async function updatePrivacyPolicyAction(data: PrivacyPolicyData) {
           updatedAt: new Date(),
         })
         .where(eq(privacyPolicy.id, existing.id))
+      await logActivity("UPDATE", "PRIVACY_POLICY", existing.id.toString(), `Updated privacy policy`)
     } else {
-      await db.insert(privacyPolicy).values({
+      const [newPolicy] = await db.insert(privacyPolicy).values({
         title: parsed.data.title,
         content: parsed.data.content,
         effectiveDate: effectiveDate,
-      })
+      }).returning()
+      await logActivity("CREATE", "PRIVACY_POLICY", newPolicy.id.toString(), `Created privacy policy`)
     }
   } catch (error) {
     console.error("خطأ في تحديث سياسة الخصوصية:", error)

@@ -17,6 +17,7 @@ import {
   Users,
   Shield,
   Scale,
+  List,
 } from "lucide-react"
 
 import { NavMain } from "@/components/dashboard/nav-main"
@@ -92,6 +93,11 @@ const data = {
       title: "الإعدادات",
       url: "/dashboard/settings",
       icon: Settings,
+    },
+    {
+      title: "سجل النشاطات",
+      url: "/dashboard/activity",
+      icon: List,
     },
   ],
 }

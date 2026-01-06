@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
+import { logActivity } from "./activity"
 
 const termsOfServiceSchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
@@ -38,12 +39,14 @@ export async function updateTermsOfServiceAction(data: TermsOfServiceData) {
           updatedAt: new Date(),
         })
         .where(eq(termsOfService.id, existing.id))
+      await logActivity("UPDATE", "TERMS_OF_SERVICE", existing.id.toString(), `Updated terms of service`)
     } else {
-      await db.insert(termsOfService).values({
+      const [newTerms] = await db.insert(termsOfService).values({
         title: parsed.data.title,
         content: parsed.data.content,
         effectiveDate: effectiveDate,
-      })
+      }).returning()
+      await logActivity("CREATE", "TERMS_OF_SERVICE", newTerms.id.toString(), `Created terms of service`)
     }
   } catch (error) {
     console.error("خطأ في تحديث شروط الخدمة:", error)

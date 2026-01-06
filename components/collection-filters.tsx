@@ -16,12 +16,10 @@ export function CollectionFilters() {
 
   const initialMinPrice = Number(searchParams.get("minPrice")) || 0
   const initialMaxPrice = Number(searchParams.get("maxPrice")) || 50000
-  const initialCategories = searchParams.get("categories")?.split(",") || []
   const initialColors = searchParams.get("colors")?.split(",") || []
   const initialMaterials = searchParams.get("materials")?.split(",") || []
 
   const [priceRange, setPriceRange] = useState<[number, number]>([initialMinPrice, initialMaxPrice])
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories)
   const [selectedColors, setSelectedColors] = useState<string[]>(initialColors)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>(initialMaterials)
 
@@ -50,24 +48,14 @@ export function CollectionFilters() {
       Number(searchParams.get("minPrice")) || 0,
       Number(searchParams.get("maxPrice")) || 50000,
     ])
-    setSelectedCategories(searchParams.get("categories")?.split(",") || [])
     setSelectedColors(searchParams.get("colors")?.split(",") || [])
     setSelectedMaterials(searchParams.get("materials")?.split(",") || [])
   }, [searchParams])
 
 
-  const categories = [
-    { id: "sofas", label: "أرائك" },
-    { id: "chairs", label: "كراسي" },
-    { id: "tables", label: "طاولات" },
-    { id: "storage", label: "وحدات تخزين" },
-    { id: "beds", label: "أسرة" },
-  ]
-
   const hasActiveFilters =
     priceRange[0] !== (Number(searchParams.get("minPrice")) || 0) ||
     priceRange[1] !== (Number(searchParams.get("maxPrice")) || 50000) ||
-    selectedCategories.length > 0 ||
     selectedColors.length > 0 ||
     selectedMaterials.length > 0
 
@@ -75,17 +63,6 @@ export function CollectionFilters() {
     setPriceRange(newRange)
     updateSearchParams("minPrice", newRange[0].toString())
     updateSearchParams("maxPrice", newRange[1].toString())
-  }
-
-  const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    let newCategories
-    if (checked) {
-      newCategories = [...selectedCategories, categoryId]
-    } else {
-      newCategories = selectedCategories.filter((c) => c !== categoryId)
-    }
-    setSelectedCategories(newCategories)
-    updateSearchParams("categories", newCategories)
   }
 
   const handleColorChange = (colorId: string) => {
@@ -112,7 +89,6 @@ export function CollectionFilters() {
 
   const handleClearFilters = () => {
     setPriceRange([0, 50000])
-    setSelectedCategories([])
     setSelectedColors([])
     setSelectedMaterials([])
 
@@ -120,7 +96,6 @@ export function CollectionFilters() {
     const params = new URLSearchParams(searchParams.toString())
     params.delete("minPrice")
     params.delete("maxPrice")
-    params.delete("categories")
     params.delete("colors")
     params.delete("materials")
     router.push(`?${params.toString()}`, { scroll: false })
@@ -138,7 +113,7 @@ export function CollectionFilters() {
         )}
       </div>
 
-      <Accordion type="multiple" defaultValue={["price", "category", "color", "material"]} className="space-y-0">
+      <Accordion type="multiple" defaultValue={["price", "color", "material"]} className="space-y-0">
         {/* Price Range Filter */}
         <AccordionItem value="price">
           <AccordionTrigger className="text-sm font-semibold">النطاق السعري</AccordionTrigger>
@@ -156,27 +131,6 @@ export function CollectionFilters() {
                 <span>{priceRange[0].toLocaleString("ar-SA")} د.ل</span>
                 <span>{priceRange[1].toLocaleString("ar-SA")} د.ل</span>
               </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Category Filter */}
-        <AccordionItem value="category">
-          <AccordionTrigger className="text-sm font-semibold">الفئة</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-3">
-              {categories.map((category) => (
-                <div key={category.id} className="flex items-center gap-2">
-                  <Checkbox
-                    id={category.id}
-                    checked={selectedCategories.includes(category.id)}
-                    onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
-                  />
-                  <Label htmlFor={category.id} className="text-sm text-gray-700 cursor-pointer">
-                    {category.label}
-                  </Label>
-                </div>
-              ))}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -217,7 +171,7 @@ export function CollectionFilters() {
                   <Checkbox
                     id={material.id}
                     checked={selectedMaterials.includes(material.id)}
-                    onCheckedChange={(checked) => handleMaterialChange(material.id, checked)}
+                    onCheckedChange={(checked) => handleMaterialChange(material.id, checked === true)}
                   />
                   <Label htmlFor={material.id} className="text-sm text-gray-700 cursor-pointer">
                     {material.label}

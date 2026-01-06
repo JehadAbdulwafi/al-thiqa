@@ -75,13 +75,11 @@ export const collections = pgTable("collections", {
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   collectionId: integer("collection_id").references(() => collections.id),
-  slug: varchar("slug", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   compareAtPrice: decimal("compare_at_price", { precision: 10, scale: 2 }),
   sku: varchar("sku", { length: 100 }),
-  stock: integer("stock").default(0).notNull(),
   material: materialEnum("material").notNull(),
   color: colorEnum("color").notNull(),
   dimensions: jsonb("dimensions"), // {width, height, depth, unit}

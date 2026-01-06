@@ -13,7 +13,6 @@ type CollectionPageProps = {
     sortBy?: string
     minPrice?: string
     maxPrice?: string
-    categories?: string
     colors?: string
     materials?: string
   }>
@@ -27,7 +26,6 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 
   const minPrice = resolvedSearchParams.minPrice ? parseInt(resolvedSearchParams.minPrice, 10) : undefined
   const maxPrice = resolvedSearchParams.maxPrice ? parseInt(resolvedSearchParams.maxPrice, 10) : undefined
-  const categories = resolvedSearchParams.categories?.split(',')
   const colors = resolvedSearchParams.colors?.split(',')
   const materials = resolvedSearchParams.materials?.split(',')
 
@@ -35,7 +33,6 @@ export default async function CollectionPage({ params, searchParams }: Collectio
     sortBy: resolvedSearchParams?.sortBy,
     minPrice,
     maxPrice,
-    categories,
     colors,
     materials,
   })

@@ -15,6 +15,48 @@ import { seedBlogPosts, seedCollections, seedProducts } from "@/lib/seed-data"
 
 const { Client } = pkg
 
+// Arabic to English material mapping
+const materialMapping: Record<string, "wood" | "metal" | "glass" | "fabric" | "leather" | "plastic" | "ceramic" | "stone" | "other"> = {
+  "خشب": "wood",
+  "قماش": "fabric",
+  "جلد": "leather",
+  "معدن": "metal",
+  "زجاج": "glass",
+  "بلاستيك": "plastic",
+  "سيراميك": "ceramic",
+  "حجر": "stone",
+  "قماش وخشب": "fabric", // Use primary material
+  "خشب وجلد": "wood", // Use primary material
+  "قماش ومعدن": "fabric", // Use primary material
+}
+
+// Arabic to English color mapping
+const colorMapping: Record<string, "white" | "black" | "gray" | "brown" | "beige" | "red" | "blue" | "green" | "yellow" | "pink" | "purple" | "orange" | "gold" | "silver" | "other"> = {
+  "أبيض": "white",
+  "أسود": "black",
+  "رمادي": "gray",
+  "بني": "brown",
+  "بيج": "beige",
+  "أحمر": "red",
+  "أزرق": "blue",
+  "أخضر": "green",
+  "أصفر": "yellow",
+  "وردي": "pink",
+  "بنفسجي": "purple",
+  "برتقالي": "orange",
+  "ذهبي": "gold",
+  "فضي": "silver",
+  "أخرى": "other",
+}
+
+function mapMaterial(arabicMaterial: string): "wood" | "metal" | "glass" | "fabric" | "leather" | "plastic" | "ceramic" | "stone" | "other" {
+  return materialMapping[arabicMaterial] || "other"
+}
+
+function mapColor(arabicColor: string): "white" | "black" | "gray" | "brown" | "beige" | "red" | "blue" | "green" | "yellow" | "pink" | "purple" | "orange" | "gold" | "silver" | "other" {
+  return colorMapping[arabicColor] || "other"
+}
+
 async function main() {
   console.log("DATABASE_URL:", process.env.DATABASE_URL)
   if (!process.env.DATABASE_URL) {
@@ -79,23 +121,27 @@ async function main() {
       )
       return null
     }
+    const specs = product.specs as any
     return {
       name: product.name,
-      slug: product.slug,
       description: product.description,
       price: product.price.toString(),
       compareAtPrice: product.compareAtPrice?.toString(),
-      stock: product.stock,
       collectionId: collection.id,
       featured: product.featured,
       // The detailed product has extra fields
-      ...(product.specs && {
-        material: (product.specs as any)["المادة"],
-        color: (product.specs as any)["اللون"],
-        weight: (product.specs as any)["الوزن"]?.replace(" كجم", ""),
+      ...(specs && {
+        material: mapMaterial(specs["المادة"]),
+        color: mapColor(specs["اللون"]),
+        weight: specs["الوزن"]?.replace(" كجم", ""),
         dimensions: {
-          value: (product.specs as any)["الأبعاد"],
+          value: specs["الأبعاد"],
         },
+      }),
+      // Default values for products without specs
+      ...(specs ? {} : {
+        material: "wood",
+        color: "brown",
       }),
     }
   })
@@ -114,7 +160,7 @@ async function main() {
   console.log("🖼️ Seeding product images...")
   const imagesToInsert = []
   for (const product of seedProducts) {
-    const seededProduct = seededProducts.find((p) => p.slug === product.slug)
+    const seededProduct = seededProducts.find((p) => p.name === product.name)
     if (seededProduct && product.images && product.images.length > 0) {
       for (let i = 0; i < product.images.length; i++) {
         imagesToInsert.push({

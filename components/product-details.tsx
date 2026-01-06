@@ -2,9 +2,8 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { ShoppingCart, Heart, Star, Minus, Plus, Share2, Truck, Shield, RotateCcw } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Truck, Shield, RotateCcw, Package } from "lucide-react"
+import { COLORS, MATERIALS } from "@/lib/constants/materials-colors"
 import { formatPrice } from "@/lib/utils"
 
 type Product = {
@@ -13,7 +12,6 @@ type Product = {
   description: string | null
   price: string | null
   compareAtPrice: string | null
-  stock: number
   material: string | null
   color: string | null
   dimensions: any | null
@@ -27,8 +25,6 @@ interface ProductDetailsProps {
 
 export function ProductDetails({ product }: ProductDetailsProps) {
   const [selectedImage, setSelectedImage] = useState(0)
-  const [quantity, setQuantity] = useState(1)
-  const [isFavorite, setIsFavorite] = useState(false)
 
   const priceNum = parseFloat(product.price || "0")
   const compareAtPriceNum = parseFloat(product.compareAtPrice || "0")
@@ -36,12 +32,47 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     compareAtPriceNum > priceNum ? Math.round(((compareAtPriceNum - priceNum) / compareAtPriceNum) * 100) : 0
   const hasDiscount = discount > 0
 
-  // Reconstruct specs object
-  const specs: Record<string, string> = {}
-  if (product.dimensions?.value) specs["الأبعاد"] = product.dimensions.value
-  if (product.material) specs["المادة"] = product.material
-  if (product.color) specs["اللون"] = product.color
-  if (product.weight) specs["الوزن"] = `${product.weight} كجم`
+  const colorInfo = COLORS.find(c => c.id === product.color)
+  const materialInfo = MATERIALS.find(m => m.id === product.material)
+
+  const features = []
+
+  if (product.color && colorInfo) {
+    features.push({
+      label: "اللون",
+      value: colorInfo.label,
+      icon: (
+        <div
+          className="w-5 h-5 rounded-full border-2 border-gray-200"
+          style={{ backgroundColor: colorInfo.hex }}
+        />
+      ),
+    })
+  }
+
+  if (product.material && materialInfo) {
+    features.push({
+      label: "المادة",
+      value: materialInfo.label,
+      icon: <Package className="w-5 h-5" />,
+    })
+  }
+
+  if (product.dimensions?.value) {
+    features.push({
+      label: "الأبعاد",
+      value: product.dimensions.value,
+      icon: <Package className="w-5 h-5" />,
+    })
+  }
+
+  if (product.weight) {
+    features.push({
+      label: "الوزن",
+      value: `${product.weight} كجم`,
+      icon: <Package className="w-5 h-5" />,
+    })
+  }
 
   return (
     <div>
@@ -70,9 +101,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               <button
                 key={image.id}
                 onClick={() => setSelectedImage(index)}
-                className={`relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedImage === index ? "border-primary ring-2 ring-primary/20" : "border-transparent"
-                }`}
+                className={`relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index ? "border-primary ring-2 ring-primary/20" : "border-transparent"
+                  }`}
               >
                 <Image
                   src={image.url || "/placeholder.svg"}
@@ -102,112 +132,54 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 </>
               )}
             </div>
-
-            {/* Stock Status */}
-            <p className="text-sm text-green-600 font-medium mb-6">متوفر في المخزون ({product.stock} قطعة)</p>
-
-            {/* Description */}
-            <p className="text-gray-600 leading-relaxed">{product.description}</p>
           </div>
 
-          {/* Quantity Selector */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">الكمية:</span>
-            <div className="flex items-center border border-gray-300 rounded-lg">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                className="h-10 w-10 rounded-r-none"
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-              <span className="px-6 font-semibold text-lg">{quantity}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                disabled={quantity >= product.stock}
-                className="h-10 w-10 rounded-l-none"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
+          {/* Product Features */}
+          {features.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">مميزات المنتج</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5 text-[#8B7355]">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">{feature.label}</p>
+                      <p className="text-sm font-medium text-gray-900">{feature.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button size="lg" className="flex-1 bg-[#8B7355] hover:bg-[#6F5B44] text-white h-14 text-lg">
-              <ShoppingCart className="w-5 h-5 ml-2" />
-              أضف إلى السلة
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className={`h-14 w-14 ${isFavorite ? "text-red-500 border-red-500" : ""}`}
-              onClick={() => setIsFavorite(!isFavorite)}
-            >
-              <Heart className={`w-5 h-5 ${isFavorite ? "fill-current" : ""}`} />
-            </Button>
-            <Button size="lg" variant="outline" className="h-14 w-14 bg-transparent">
-              <Share2 className="w-5 h-5" />
-            </Button>
+          {/* Description */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">الوصف</h3>
+            <p className="text-gray-600 leading-relaxed">{product.description}</p>
           </div>
 
           {/* Service Features */}
           <div className="grid grid-cols-3 gap-4 pt-6 border-t">
             <div className="text-center">
-              <Truck className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <Truck className="w-6 h-6 mx-auto mb-2 text-[#8B7355]" />
               <p className="text-xs font-medium text-gray-900">توصيل مجاني</p>
               <p className="text-xs text-gray-500">للطلبات +500 د.ل</p>
             </div>
             <div className="text-center">
-              <Shield className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <Shield className="w-6 h-6 mx-auto mb-2 text-[#8B7355]" />
               <p className="text-xs font-medium text-gray-900">ضمان 5 سنوات</p>
               <p className="text-xs text-gray-500">على جميع المنتجات</p>
             </div>
             <div className="text-center">
-              <RotateCcw className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <RotateCcw className="w-6 h-6 mx-auto mb-2 text-[#8B7355]" />
               <p className="text-xs font-medium text-gray-900">إرجاع سهل</p>
               <p className="text-xs text-gray-500">خلال 30 يوم</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Additional Info Tabs */}
-      <Tabs defaultValue="specs" className="w-full">
-        <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-          <TabsTrigger
-            value="specs"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
-          >
-            المواصفات
-          </TabsTrigger>
-          <TabsTrigger
-            value="reviews"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
-          >
-            التقييمات
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="specs" className="py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(specs).map(([key, value]) => (
-              <div key={key} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-900">{key}</span>
-                <span className="text-gray-600">{value}</span>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="reviews" className="py-8">
-          <p className="text-gray-600">قريباً: سيتم عرض تقييمات العملاء هنا</p>
-        </TabsContent>
-      </Tabs>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import "server-only"
 import { db } from "@/lib/db"
 import { products, blogPosts, collections, privacyPolicy, termsOfService } from "@/lib/db/schema"
-import { desc, eq, sql, asc, ne, or, ilike, and, max } from "drizzle-orm"
+import { desc, eq, sql, asc, ne, or, ilike, and, max, inArray } from "drizzle-orm"
 
 /**
  * Fetches featured products.
@@ -115,7 +115,6 @@ export async function getProductsByCollection(
     sortBy?: string,
     minPrice?: number,
     maxPrice?: number,
-    categories?: string[],
     colors?: string[],
     materials?: string[],
   }
@@ -158,16 +157,13 @@ export async function getProductsByCollection(
     whereConditions.push(sql`${products.price} <= ${options.maxPrice}`)
   }
   if (options?.colors && options.colors.length > 0) {
-    whereConditions.push(or(...options.colors.map(color => ilike(products.color, `%${color}%`))))
+    const colorConditions = options.colors.map(color => sql`${products.color} = ${color}`)
+    whereConditions.push(or(...colorConditions))
   }
   if (options?.materials && options.materials.length > 0) {
-    whereConditions.push(or(...options.materials.map(material => ilike(products.material, `%${material}%`))))
+    const materialConditions = options.materials.map(material => sql`${products.material} = ${material}`)
+    whereConditions.push(or(...materialConditions))
   }
-  // Categories filtering logic - This needs to be done through the collectionId
-  // which is already part of the initial where condition.
-  // If the 'categories' filter refers to sub-categories or a different level of categorization
-  // beyond the main collectionSlug, we'd need a more complex join or schema adjustment.
-  // For now, it implicitly filters by the collectionSlug.
 
   const data = await db.query.products.findMany({
     where: (products, { and }) => and(...whereConditions),

@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
+import { colorEnum, materialEnum } from "@/lib/db/schema"
 
 const productFormSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
@@ -267,7 +268,7 @@ export function ProductForm({ product, collections }: ProductFormProps) {
                   />
                 </FormControl>
                 <FormDescription className="text-sm text-muted-foreground">
-                  مثال: {"width": 120, "height": 80, "depth": 70, "unit": "cm"}
+                  مثال: "width": 120, "height": 80, "depth": 70, "unit": "cm"
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -379,6 +380,7 @@ export function ProductForm({ product, collections }: ProductFormProps) {
             إلغاء
           </Button>
         </div>
-      </Form>
+      </div>
+    </Form>
   )
 }

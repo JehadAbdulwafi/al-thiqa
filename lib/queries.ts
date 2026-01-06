@@ -1,4 +1,3 @@
-import "server-only"
 import { db } from "@/lib/db"
 import { products, blogPosts, collections, privacyPolicy, termsOfService, banners } from "@/lib/db/schema"
 import { desc, eq, sql, asc, or } from "drizzle-orm"

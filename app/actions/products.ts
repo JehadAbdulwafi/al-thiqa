@@ -7,6 +7,7 @@ import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { slugify } from "@/lib/utils"
+import { logActivity } from "./activity"
 
 // Schema for validating product creation/update - must match frontend form
 const productSchema = z.object({
@@ -57,10 +58,11 @@ export async function createProduct(data: ProductData) {
       }
     }
   } catch (error) {
-    console.error("Error creating product:", error)
-    throw new Error("Failed to create product.")
+    console.error("Error deleting product:", error)
+    throw new Error("Failed to delete product.")
   }
 
+  await logActivity("DELETE", "PRODUCT", id.toString(), `Deleted product`)
   revalidatePath("/dashboard/products")
   redirect("/dashboard/products")
 }
@@ -101,6 +103,7 @@ export async function updateProduct(id: number, data: ProductData) {
     throw new Error("Failed to update product.")
   }
 
+  await logActivity("UPDATE", "PRODUCT", id.toString(), `Updated product: ${productData.name}`)
   revalidatePath("/dashboard/products")
   revalidatePath(`/products/${data.slug}`)
   redirect("/dashboard/products")

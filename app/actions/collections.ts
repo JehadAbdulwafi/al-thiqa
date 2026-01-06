@@ -7,6 +7,7 @@ import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { slugify } from "@/lib/utils"
+import { logActivity } from "./activity"
 
 // Schema for validating collection creation/update
 const collectionSchema = z.object({
@@ -41,6 +42,7 @@ export async function createCollection(data: CollectionData) {
     throw new Error("Failed to create collection.")
   }
 
+  await logActivity("CREATE", "COLLECTION", null, `Created collection: ${collectionData.name}`)
   revalidatePath("/dashboard/collections")
   redirect("/dashboard/collections")
 }
@@ -66,6 +68,7 @@ export async function updateCollection(id: number, data: CollectionData) {
     throw new Error("Failed to update collection.")
   }
 
+  await logActivity("UPDATE", "COLLECTION", id.toString(), `Updated collection: ${collectionData.name}`)
   revalidatePath("/dashboard/collections")
   redirect("/dashboard/collections")
 }
@@ -79,5 +82,7 @@ export async function deleteCollection(id: number) {
     throw new Error("Failed to delete collection.")
   }
 
+  await logActivity("DELETE", "COLLECTION", id.toString(), `Deleted collection`)
   revalidatePath("/dashboard/collections")
 }
+

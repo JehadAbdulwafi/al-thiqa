@@ -8,6 +8,7 @@ import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { slugify } from "@/lib/utils"
 import { getSession } from "@/lib/auth"
+import { logActivity } from "./activity"
 
 // Schema for validating blog post creation/update
 const blogPostSchema = z.object({

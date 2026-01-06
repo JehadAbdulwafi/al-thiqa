@@ -15,10 +15,9 @@ export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const navItems = [
     { label: "الرئيسية", href: "/" },
-    { label: "المجموعات", href: "/collections" },
-    { label: "غرف النوم", href: "/collections/bedroom" },
-    { label: "غرف المعيشة", href: "/collections/living-room" },
-    { label: "المكاتب", href: "/collections/office" },
+    { label: "المنتجات", href: "/products" },
+    { label: "عن الشركة", href: "/about" },
+    { label: "اتصل بنا", href: "/contact" },
   ]
 
   return (

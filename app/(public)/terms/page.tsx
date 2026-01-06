@@ -1,0 +1,23 @@
+"use server"
+import { getTermsOfService } from "@/lib/queries";
+import Editor from "@/components/editor";
+
+export default async function TermsPage() {
+  const data = await getTermsOfService()
+
+  return (
+    <main className="container mx-auto px-4 py-12 max-w-7xl">
+      <div className="container">
+        <div>
+          <h2 className="section-title">{data?.title || "شروط الخدمة"}</h2>
+        </div>
+      </div>
+      <div className="container min-h-96 my-4">
+        <Editor
+          content={data?.content || ""}
+          editable={false}
+        />
+      </div>
+    </main>
+  );
+}

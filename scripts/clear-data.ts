@@ -1,7 +1,7 @@
 
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { users, products, collections, productImages, blogPosts, activityLogs } from "../lib/db/schema";
+import { users, products, collections, productImages, blogPosts, activityLogs, privacyPolicy, termsOfService } from "../lib/db/schema";
 import pkg from "pg";
 
 const { Client } = pkg;
@@ -21,6 +21,8 @@ async function main() {
   await db.delete(productImages);
   await db.delete(products);
   await db.delete(collections);
+  await db.delete(privacyPolicy);
+  await db.delete(termsOfService);
   await db.delete(users);
 
   console.log("🎉 All data cleared successfully!");

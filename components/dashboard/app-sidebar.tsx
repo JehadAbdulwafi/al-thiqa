@@ -15,6 +15,8 @@ import {
   Package,
   Settings,
   Users,
+  Shield,
+  Scale,
 } from "lucide-react"
 
 import { NavMain } from "@/components/dashboard/nav-main"
@@ -75,6 +77,16 @@ const data = {
       title: "المستخدمين",
       url: "/dashboard/users",
       icon: Users,
+    },
+    {
+      title: "سياسة الخصوصية",
+      url: "/dashboard/privacy",
+      icon: Shield,
+    },
+    {
+      title: "شروط الخدمة",
+      url: "/dashboard/terms",
+      icon: Scale,
     },
     {
       title: "الإعدادات",

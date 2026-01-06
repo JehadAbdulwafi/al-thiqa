@@ -6,6 +6,8 @@ import {
   productImages,
   products,
   users,
+  privacyPolicy,
+  termsOfService,
 } from "../lib/db/schema"
 import pkg from "pg"
 import bcrypt from "bcryptjs"
@@ -141,6 +143,29 @@ async function main() {
   const seededPosts = await db.insert(blogPosts).values(postsToInsert).returning()
   console.log(`✅ Seeded ${seededPosts.length} blog posts.`)
 
+  // --- Seed Privacy Policy ---
+  console.log("🔒 Seeding privacy policy...")
+  const seededPrivacyPolicy = await db
+    .insert(privacyPolicy)
+    .values({
+      title: "سياسة الخصوصية",
+      content: "نحن في شركة الأثقة نلتزم بحماية خصوصيتك. سياسة الخصوصية هذه توضح كيف نقوم بجمع واستخدام ومشاركة معلوماتك الشخصية.",
+      effectiveDate: new Date(),
+    })
+    .returning()
+  console.log(`✅ Seeded ${seededPrivacyPolicy.length} privacy policy.`)
+
+  // --- Seed Terms of Service ---
+  console.log("⚖️ Seeding terms of service...")
+  const seededTermsOfService = await db
+    .insert(termsOfService)
+    .values({
+      title: "شروط الخدمة",
+      content: "استخدامك لموقعنا يعني موافقتك على هذه الشروط والأحكام. يرجى قراءتها بعناية قبل استخدام خدماتنا.",
+      effectiveDate: new Date(),
+    })
+    .returning()
+  console.log(`✅ Seeded ${seededTermsOfService.length} terms of service.`)
 
   console.log("🎉 Seeding completed successfully!")
   await client.end()

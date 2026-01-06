@@ -18,7 +18,12 @@ async function main() {
   console.log("⏳ Dropping all tables...");
 
   await db.execute(sql`DROP TABLE IF EXISTS "activity_logs" CASCADE;`);
-  await db.execute(sql`DROP TABLE IF EXISTS "inquiries" CASCADE;`);
+  await db.execute(sql`DROP TABLE IF EXISTS "product_images" CASCADE;`);
+  await db.execute(sql`DROP TABLE IF EXISTS "blog_posts" CASCADE;`);
+  await db.execute(sql`DROP TABLE IF EXISTS "products" CASCADE;`);
+  await db.execute(sql`DROP TABLE IF EXISTS "collections" CASCADE;`);
+  await db.execute(sql`DROP TABLE IF EXISTS "privacy_policy" CASCADE;`);
+  await db.execute(sql`DROP TABLE IF EXISTS "terms_of_service" CASCADE;`);
   await db.execute(sql`DROP TABLE IF EXISTS "users" CASCADE;`);
   await db.execute(sql`DROP TABLE IF EXISTS "drizzle_migrations" CASCADE;`);
 

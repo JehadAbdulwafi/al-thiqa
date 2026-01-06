@@ -87,6 +87,26 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
+// Privacy Policy table - Single record policy that can only be updated
+export const privacyPolicy = pgTable("privacy_policy", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  effectiveDate: timestamp("effective_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+// Terms of Service table - Single record that can only be updated
+export const termsOfService = pgTable("terms_of_service", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  effectiveDate: timestamp("effective_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
 // Activity Logs table
 export const activityLogs = pgTable("activity_logs", {
   id: serial("id").primaryKey(),

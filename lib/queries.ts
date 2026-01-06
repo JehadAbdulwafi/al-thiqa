@@ -1,8 +1,7 @@
 import "server-only"
 import { db } from "@/lib/db"
-import { products, blogPosts, collections } from "@/lib/db/schema"
-import { desc, eq, sql, asc, ne, or, ilike } from "drizzle-orm"
-import { count } from "drizzle-orm"
+import { products, blogPosts, collections, privacyPolicy, termsOfService } from "@/lib/db/schema"
+import { desc, eq, sql, asc, ne, or, ilike, and, max } from "drizzle-orm"
 
 /**
  * Fetches featured products.
@@ -318,3 +317,93 @@ export async function getCollectionById(id: string) {
   })
   return data
 }
+
+/**
+ * Fetches the privacy policy (single record).
+ * @returns A promise that resolves to the privacy policy object or null if not found.
+ */
+export async function getPrivacyPolicy() {
+  console.log("Fetching privacy policy...")
+  const data = await db.query.privacyPolicy.findFirst()
+  return data
+}
+
+/**
+ * Updates the privacy policy (single record).
+ * @param data The privacy policy data to update.
+ * @returns A promise that resolves to the updated privacy policy.
+ */
+export async function updatePrivacyPolicy(data: {
+  title: string
+  content: string
+  effectiveDate: Date
+}) {
+  console.log("Updating privacy policy...")
+  const existing = await db.query.privacyPolicy.findFirst()
+
+  if (existing) {
+    const [updated] = await db
+      .update(privacyPolicy)
+      .set({
+        title: data.title,
+        content: data.content,
+        effectiveDate: data.effectiveDate,
+        updatedAt: new Date(),
+      })
+      .where(eq(privacyPolicy.id, existing.id))
+      .returning()
+    return updated
+  } else {
+    const [created] = await db
+      .insert(privacyPolicy)
+      .values(data)
+      .returning()
+    return created
+  }
+}
+
+/**
+ * Fetches the terms of service (single record).
+ * @returns A promise that resolves to the terms of service object or null if not found.
+ */
+export async function getTermsOfService() {
+  console.log("Fetching terms of service...")
+  const data = await db.query.termsOfService.findFirst()
+  return data
+}
+
+/**
+ * Updates the terms of service (single record).
+ * @param data The terms of service data to update.
+ * @returns A promise that resolves to the updated terms of service.
+ */
+export async function updateTermsOfService(data: {
+  title: string
+  content: string
+  effectiveDate: Date
+}) {
+  console.log("Updating terms of service...")
+  const existing = await db.query.termsOfService.findFirst()
+
+  if (existing) {
+    const [updated] = await db
+      .update(termsOfService)
+      .set({
+        title: data.title,
+        content: data.content,
+        effectiveDate: data.effectiveDate,
+        updatedAt: new Date(),
+      })
+      .where(eq(termsOfService.id, existing.id))
+      .returning()
+    return updated
+  } else {
+    const [created] = await db
+      .insert(termsOfService)
+      .values(data)
+      .returning()
+    return created
+  }
+}
+
+

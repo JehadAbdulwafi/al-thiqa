@@ -52,10 +52,10 @@ export function LoginForm() {
               id="email"
               name="email"
               type="email"
-              placeholder="agent@realestate.com"
+              placeholder="admin@example.com"
               required
               disabled={isLoading}
-              defaultValue="agent@realestate.com"
+              defaultValue="admin@example.com"
             />
           </div>
           <div className="space-y-2">
@@ -74,7 +74,7 @@ export function LoginForm() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>
-          <p className="text-xs text-center text-muted-foreground mt-4">Demo: agent@realestate.com / password123</p>
+          <p className="text-xs text-center text-muted-foreground mt-4">Demo: admin@example.com / password123</p>
         </form>
       </CardContent>
     </Card>

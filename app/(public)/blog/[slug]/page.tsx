@@ -3,6 +3,9 @@ import { blogPosts, users } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { format } from "date-fns"
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
   const post = await db.query.blogPosts.findFirst({
@@ -21,21 +24,49 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   }
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-      <p className="text-gray-600 text-sm mb-6">
-        بواسطة {post.author?.name || "غير معروف"} في{" "}
-        {format(post.publishedAt || post.createdAt, "PPP")}
-      </p>
+    <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <Link
+        href="/blog"
+        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4 rotate-180" />
+        العودة إلى المدونة
+      </Link>
 
-      {post.coverImage && (
-        <img src={post.coverImage} alt={post.title} className="w-full h-auto rounded-lg mb-8" />
-      )}
+      <article className="space-y-8">
+        <header className="space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+            {post.title}
+          </h1>
 
-      <div className="prose prose-lg max-w-none">
-        <p>{post.content}</p>
-        {/* You might want to render markdown here if content is markdown */}
-      </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>
+              بواسطة {post.author?.name || "غير معروف"}
+            </span>
+            <span>•</span>
+            <span>
+              {format(post.publishedAt || post.createdAt, "PPP")}
+            </span>
+          </div>
+        </header>
+
+        {post.coverImage && (
+          <div className="relative aspect-[16/9] rounded-lg overflow-hidden">
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+
+        <div
+          className="prose prose-lg prose-stone max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:text-[#8B7355] prose-strong:text-gray-900"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
+      </article>
     </main>
   )
 }

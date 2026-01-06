@@ -1,7 +1,7 @@
 import "server-only"
 import { db } from "@/lib/db"
 import { products, blogPosts, collections, privacyPolicy, termsOfService } from "@/lib/db/schema"
-import { desc, eq, sql, asc, ne, or, ilike, and, max, inArray } from "drizzle-orm"
+import { desc, eq, sql, asc, or } from "drizzle-orm"
 
 /**
  * Fetches featured products.
@@ -34,7 +34,7 @@ export async function getFeaturedProducts() {
 export async function getBestSellers() {
   console.log("Fetching best sellers...")
   const data = await db.query.products.findMany({
-    orderBy: [desc(products.stock), desc(products.createdAt)],
+    orderBy: [desc(products.createdAt)],
     limit: 6,
     with: {
       images: {

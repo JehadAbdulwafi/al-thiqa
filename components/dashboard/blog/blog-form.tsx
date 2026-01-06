@@ -8,13 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import Editor from "@/components/editor"
 import { createBlogPost, updateBlogPost } from "@/app/actions/blog"
 import { Loader2 } from "lucide-react"
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/dropzone"
@@ -165,7 +159,13 @@ export function BlogForm({ blogPost }: BlogFormProps) {
             <FormItem>
               <FormLabel htmlFor="content">المحتوى</FormLabel>
               <FormControl>
-                <Textarea id="content" {...field} rows={10} />
+                <div className="border rounded-md">
+                  <Editor
+                    content={field.value || ""}
+                    onChange={field.onChange}
+                    editable={true}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

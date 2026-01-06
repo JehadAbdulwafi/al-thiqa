@@ -6,17 +6,14 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
-import { slugify } from "@/lib/utils"
 import { logActivity } from "./activity"
 
 // Schema for validating product creation/update - must match frontend form
 const productSchema = z.object({
   name: z.string().min(1, "الاسم مطلوب"),
-  slug: z.string().optional(), // Make slug optional
   description: z.string().nullable(),
   price: z.number().min(0, "السعر يجب أن يكون موجباً أو صفراً"),
-  compareAtPrice: z.number().min(0, "السعر يجب أن يكون موجباً أو صفراً").optional().nullable(),
-  stock: z.number().int().min(0, "المخزون لا يمكن أن يكون سالباً"),
+  compareAtPrice: z.number().min(0, "السعر قبل الخصم يجب أن يكون موجباً أو صفراً").optional().nullable(),
   collectionId: z.number().int().positive("يجب اختيار تصنيف").optional().nullable(),
   material: z.string().nullable(),
   color: z.string().nullable(),
@@ -38,16 +35,13 @@ export async function createProduct(data: ProductData) {
   }
 
   let { imageUrls, ...productData } = parsed.data
-  if (!productData.slug) {
-    productData.slug = slugify(productData.name)
-  }
 
   try {
     const [newProduct] = await db.insert(products).values(productData).returning()
 
     if (newProduct && imageUrls && imageUrls.length > 0) {
       const imagesToInsert = imageUrls
-        .filter(url => url) // Filter out empty strings
+        .filter(url => url)
         .map((url, index) => ({
           productId: newProduct.id,
           url,
@@ -58,11 +52,11 @@ export async function createProduct(data: ProductData) {
       }
     }
   } catch (error) {
-    console.error("Error deleting product:", error)
-    throw new Error("Failed to delete product.")
+    console.error("Error creating product:", error)
+    throw new Error("Failed to create product.")
   }
 
-  await logActivity("DELETE", "PRODUCT", id.toString(), `Deleted product`)
+  await logActivity("CREATE", "PRODUCT", null, `Created product: ${productData.name}`)
   revalidatePath("/dashboard/products")
   redirect("/dashboard/products")
 }
@@ -77,9 +71,6 @@ export async function updateProduct(id: number, data: ProductData) {
   }
 
   let { imageUrls, ...productData } = parsed.data
-  if (!productData.slug) {
-    productData.slug = slugify(productData.name)
-  }
 
   try {
     await db.update(products).set(productData).where(eq(products.id, id))
@@ -88,7 +79,7 @@ export async function updateProduct(id: number, data: ProductData) {
     await db.delete(productImages).where(eq(productImages.productId, id))
     if (imageUrls && imageUrls.length > 0) {
       const imagesToInsert = imageUrls
-        .filter(url => url) // Filter out empty strings
+        .filter(url => url)
         .map((url, index) => ({
           productId: id,
           url,
@@ -105,7 +96,6 @@ export async function updateProduct(id: number, data: ProductData) {
 
   await logActivity("UPDATE", "PRODUCT", id.toString(), `Updated product: ${productData.name}`)
   revalidatePath("/dashboard/products")
-  revalidatePath(`/products/${data.slug}`)
   redirect("/dashboard/products")
 }
 

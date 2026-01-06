@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { MATERIALS, COLORS } from "@/lib/constants/materials-colors"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -50,8 +52,8 @@ const productFormSchema = z.object({
     .nullable()
     .transform((val) => val ? parseInt(val, 10) : null)
     .optional(),
-  material: z.string().nullable().optional(),
-  color: z.string().nullable().optional(),
+  material: z.enum(materialEnum.enumValues).nullable().optional(),
+  color: z.enum(colorEnum.enumValues).nullable().optional(),
   dimensions: z.string().nullable().optional(), // Store as stringified JSON
   weight: z.string()
     .nullable()
@@ -79,8 +81,8 @@ interface ProductFormProps {
     compareAtPrice: number | null
     stock: number
     collectionId: number | null
-    material: string | null
-    color: string | null
+      material: typeof Material | null
+      color: typeof Color | null
     dimensions: any | null
     weight: number | null
     featured: boolean
@@ -112,8 +114,8 @@ export function ProductForm({ product, collections }: ProductFormProps) {
       compareAtPrice: product?.compareAtPrice ? product.compareAtPrice.toString() : "", // Store as string for input
       stock: product?.stock || 0,
       collectionId: product?.collectionId?.toString() || null,
-      material: product?.material || "",
-      color: product?.color || "",
+      material: product?.material || undefined,
+      color: product?.color || undefined,
       dimensions: product?.dimensions ? JSON.stringify(product.dimensions, null, 2) : "",
       weight: product?.weight ? product.weight.toString() : "", // Store as string for input
       featured: product?.featured || false,
@@ -290,9 +292,18 @@ export function ProductForm({ product, collections }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor="material">المادة</FormLabel>
-                <FormControl>
-                  <Input id="material" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="اختر المادة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MATERIALS.map((material) => (
+                      <SelectItem key={material.id} value={material.id}>
+                        {material.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -303,9 +314,24 @@ export function ProductForm({ product, collections }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor="color">اللون</FormLabel>
-                <FormControl>
-                  <Input id="color" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="اختر اللون" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COLORS.map((color) => (
+                      <SelectItem key={color.id} value={color.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-6 h-6 rounded-full border-2"
+                            style={{ backgroundColor: color.hex }}
+                          />
+                          <span>{color.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

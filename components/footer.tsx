@@ -1,5 +1,8 @@
+"use client"
+
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export function Footer() {
   return (
@@ -25,23 +28,38 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-5 text-lg">روابط سريعة</h4>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                <a href="/" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
                   الرئيسية
                 </a>
               </li>
               <li>
-                <a href="#products" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
-                  منتجاتنا
+                <a href="/products" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                  جميع المنتجات
                 </a>
               </li>
               <li>
-                <a href="#about" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                <a href="/about" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
                   عن الشركة
                 </a>
               </li>
               <li>
-                <a href="#contact" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                <a href="/contact" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
                   اتصل بنا
+                </a>
+              </li>
+              <li>
+                <a href="/blog" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                  المدونة
+                </a>
+              </li>
+              <li>
+                <a href="/privacy-policy" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                  سياسة الخصوصية
+                </a>
+              </li>
+              <li>
+                <a href="/terms" className="text-sm text-gray-400 hover:text-[#D4A574] transition-colors">
+                  شروط الخدمة
                 </a>
               </li>
             </ul>
@@ -66,25 +84,31 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Social Media */}
+           {/* Social Media */}
           <div>
             <h4 className="font-semibold text-white mb-5 text-lg">تابعنا</h4>
             <p className="text-sm text-gray-400 mb-4">تواصل معنا عبر وسائل التواصل الاجتماعي</p>
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-11 w-11 rounded-lg bg-gray-800 hover:bg-[#8B7355] text-gray-300 hover:text-white flex items-center justify-center transition-all"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-11 w-11 rounded-lg bg-gray-800 hover:bg-[#8B7355] text-gray-300 hover:text-white flex items-center justify-center transition-all"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-11 w-11 rounded-lg bg-gray-800 hover:bg-[#8B7355] text-gray-300 hover:text-white flex items-center justify-center transition-all"
               >
                 <Twitter className="h-5 w-5" />

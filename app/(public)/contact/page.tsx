@@ -1,9 +1,7 @@
-import Image from "next/image"
-
 export default async function ContactPage() {
   return (
-    <main className="container mx-auto px-4 py-16 max-w-4xl">
-      <div className="max-w-2xl mx-auto">
+    <main className="container mx-auto px-4 py-16">
+      <div className="mx-auto">
         <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">اتصل بنا</h1>
           <p className="text-gray-600 text-lg">
@@ -12,46 +10,6 @@ export default async function ContactPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">معلومات الاتصال</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#8B7355] rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">📍</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">العنوان</h3>
-                  <p className="text-gray-600">
-                    طرابلس، ليبيا
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#8B7355] rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">📞</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">الهاتف</h3>
-                  <p className="text-gray-600" dir="ltr">
-                    +218 123 4567
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#8B7355] rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">✉️</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">البريد الإلكتروني</h3>
-                  <p className="text-gray-600">
-                    info@al-thiqa.com
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">أرسل رسالة</h2>
@@ -116,11 +74,52 @@ export default async function ContactPage() {
               </button>
             </form>
           </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">معلومات الاتصال</h2>
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#8B7355] rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">📍</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">العنوان</h3>
+                  <p className="text-gray-600">
+                    طرابلس، ليبيا
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#8B7355] rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">📞</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">الهاتف</h3>
+                  <p className="text-gray-600" dir="ltr">
+                    +218 123 4567
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#8B7355] rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">✉️</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">البريد الإلكتروني</h3>
+                  <p className="text-gray-600">
+                    info@al-thiqa.com
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
 
         <section className="mt-16 pt-8 border-t border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">ساعات العمل</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
             <div>
               <p className="text-3xl font-bold text-[#8B7355] mb-2">السبت - الخميس</p>
               <p className="text-gray-600 text-lg">9:00 ص - 9:00 م</p>
@@ -128,10 +127,6 @@ export default async function ContactPage() {
             <div>
               <p className="text-3xl font-bold text-[#8B7355] mb-2">الجمعة</p>
               <p className="text-gray-600 text-lg">9:00 ص - 5:00 م</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-[#8B7355] mb-2">السبت</p>
-              <p className="text-gray-600 text-lg">مغلق</p>
             </div>
           </div>
         </section>

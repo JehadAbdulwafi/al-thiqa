@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { COLORS, MATERIALS } from "@/lib/constants/materials-colors"
 
 export function CollectionFilters() {
   const router = useRouter()
@@ -61,23 +62,6 @@ export function CollectionFilters() {
     { id: "tables", label: "طاولات" },
     { id: "storage", label: "وحدات تخزين" },
     { id: "beds", label: "أسرة" },
-  ]
-
-  const colors = [
-    { id: "beige", label: "بيج", hex: "#D4C5B9" },
-    { id: "gray", label: "رمادي", hex: "#9CA3AF" },
-    { id: "white", label: "أبيض", hex: "#FFFFFF" },
-    { id: "black", label: "أسود", hex: "#1F2937" },
-    { id: "brown", label: "بني", hex: "#92714F" },
-    { id: "blue", label: "أزرق", hex: "#3B82F6" },
-  ]
-
-  const materials = [
-    { id: "wood", label: "خشب" },
-    { id: "metal", label: "معدن" },
-    { id: "fabric", label: "قماش" },
-    { id: "leather", label: "جلد" },
-    { id: "velvet", label: "مخمل" },
   ]
 
   const hasActiveFilters =
@@ -202,7 +186,7 @@ export function CollectionFilters() {
           <AccordionTrigger className="text-sm font-semibold">اللون</AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-3 gap-3">
-              {colors.map((color) => (
+              {COLORS.map((color) => (
                 <button
                   key={color.id}
                   onClick={() => handleColorChange(color.id)}
@@ -228,7 +212,7 @@ export function CollectionFilters() {
           <AccordionTrigger className="text-sm font-semibold">المادة</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-3">
-              {materials.map((material) => (
+              {MATERIALS.map((material) => (
                 <div key={material.id} className="flex items-center gap-2">
                   <Checkbox
                     id={material.id}

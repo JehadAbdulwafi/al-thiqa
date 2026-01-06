@@ -15,6 +15,38 @@ import {
 // Enums
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "EDITOR"])
 
+// Materials enum
+export const materialEnum = pgEnum("material", [
+  "wood",
+  "metal",
+  "glass",
+  "fabric",
+  "leather",
+  "plastic",
+  "ceramic",
+  "stone",
+  "other",
+])
+
+// Colors enum
+export const colorEnum = pgEnum("color", [
+  "white",
+  "black",
+  "gray",
+  "brown",
+  "beige",
+  "red",
+  "blue",
+  "green",
+  "yellow",
+  "pink",
+  "purple",
+  "orange",
+  "gold",
+  "silver",
+  "other",
+])
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -50,8 +82,8 @@ export const products = pgTable("products", {
   compareAtPrice: decimal("compare_at_price", { precision: 10, scale: 2 }),
   sku: varchar("sku", { length: 100 }),
   stock: integer("stock").default(0).notNull(),
-  material: varchar("material", { length: 100 }),
-  color: varchar("color", { length: 50 }),
+  material: materialEnum("material").notNull(),
+  color: colorEnum("color").notNull(),
   dimensions: jsonb("dimensions"), // {width, height, depth, unit}
   weight: decimal("weight", { precision: 8, scale: 2 }),
   featured: boolean("featured").default(false),

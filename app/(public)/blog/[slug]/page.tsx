@@ -7,9 +7,17 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+type BlogPostPageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params
+
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.slug, params.slug),
+    where: eq(blogPosts.slug, slug),
     with: {
       author: {
         columns: {

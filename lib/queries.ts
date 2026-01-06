@@ -1,6 +1,6 @@
 import "server-only"
 import { db } from "@/lib/db"
-import { products, blogPosts, collections, privacyPolicy, termsOfService } from "@/lib/db/schema"
+import { products, blogPosts, collections, privacyPolicy, termsOfService, banners } from "@/lib/db/schema"
 import { desc, eq, sql, asc, or } from "drizzle-orm"
 
 /**
@@ -432,7 +432,23 @@ export async function getTermsOfService() {
 }
 
 /**
- * Updates the terms of service (single record).
+ * Fetches all active banners.
+ * @param limit Optional limit on number of banners to return
+ * @returns A promise that resolves to an array of active banners.
+ */
+export async function getBanners(limit?: number) {
+  console.log(`Fetching banners with limit: ${limit}...`)
+  const data = await db.query.banners.findMany({
+    where: eq(banners.isActive, true),
+    orderBy: [asc(banners.order)],
+    limit: limit,
+  })
+  console.log(`Found ${data.length} banners.`)
+  return data
+}
+
+/**
+ * Fetches terms of service data for updates.
  * @param data The terms of service data to update.
  * @returns A promise that resolves to the updated terms of service.
  */

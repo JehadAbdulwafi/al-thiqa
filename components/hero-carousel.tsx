@@ -1,30 +1,15 @@
 "use client"
+
 import { Button } from "@/components/ui/button"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
+import Image from "next/image"
+import Link from "next/link"
+import { getBanners } from "@/lib/queries"
+import type { Banner } from "@/lib/db/schema"
 
-const slides = [
-  {
-    title: "مجموعة الشتاء الجديدة",
-    subtitle: "أثاث فاخر بتصاميم عصرية",
-    cta: "تسوق الآن",
-    image: "/modern-luxury-living-room-with-elegant-furniture-b.avif",
-  },
-  {
-    title: "خصم يصل إلى 30%",
-    subtitle: "على جميع غرف النوم",
-    cta: "اكتشف العروض",
-    image: "/modern-office-desk.avif",
-  },
-  {
-    title: "أثاث مكتبي احترافي",
-    subtitle: "راحة وإنتاجية في مكان عملك",
-    cta: "شاهد المزيد",
-    image: "/marble-coffee-table.avif",
-  },
-]
-
-export function HeroCarousel() {
+export async function HeroCarousel() {
+  const banners = await getBanners(3)
   const autoplayPlugin = Autoplay({ delay: 6000, stopOnInteraction: true })
 
   return (
@@ -39,15 +24,15 @@ export function HeroCarousel() {
         className="w-full"
       >
         <CarouselContent>
-          {slides.map((slide, index) => (
-            <CarouselItem key={index}>
+          {banners.map((banner) => (
+            <CarouselItem key={banner.id}>
               <div className="relative w-full h-[450px] md:h-[550px] lg:h-[650px] overflow-hidden rounded-2xl bg-gray-100">
                 <div className="relative w-full h-full">
                   {/* Background Image */}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent">
                     <img
-                      src={slide.image || "/placeholder.svg"}
-                      alt={slide.title}
+                      src={banner.image || "/placeholder.svg"}
+                      alt={banner.title}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -56,14 +41,15 @@ export function HeroCarousel() {
                   <div className="relative container mx-auto px-4 h-full flex items-center">
                     <div className="max-w-2xl text-white">
                       <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-balance leading-tight">
-                        {slide.title}
+                        {banner.title}
                       </h1>
-                      <p className="text-xl md:text-2xl lg:text-3xl mb-8 text-gray-100">{slide.subtitle}</p>
+                      {banner.subtitle && <p className="text-xl md:text-2xl lg:text-3xl mb-8 text-gray-100">{banner.subtitle}</p>}
                       <Button
                         size="lg"
+                        asChild
                         className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-7 text-lg font-semibold h-auto"
                       >
-                        {slide.cta}
+                        <Link href="/products">{banner.cta || "تسوق الآن"}</Link>
                       </Button>
                     </div>
                   </div>

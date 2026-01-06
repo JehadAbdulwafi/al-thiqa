@@ -117,6 +117,19 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
+// Banners table
+export const banners = pgTable("banners", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  subtitle: text("subtitle"),
+  cta: varchar("cta", { length: 255 }),
+  image: text("image").notNull(),
+  isActive: boolean("is_active").default(true),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
 // Privacy Policy table - Single record policy that can only be updated
 export const privacyPolicy = pgTable("privacy_policy", {
   id: serial("id").primaryKey(),

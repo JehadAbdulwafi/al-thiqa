@@ -8,10 +8,11 @@ import {
   users,
   privacyPolicy,
   termsOfService,
+  banners,
 } from "../lib/db/schema"
 import pkg from "pg"
 import bcrypt from "bcryptjs"
-import { seedBlogPosts, seedCollections, seedProducts } from "@/lib/seed-data"
+import { seedBlogPosts, seedCollections, seedProducts, seedBanners } from "@/lib/seed-data"
 
 const { Client } = pkg
 
@@ -179,10 +180,15 @@ async function main() {
     console.log("No product images to seed.")
   }
 
+  // --- Seed Banners ---
+  console.log("🎨 Seeding banners...")
+  const seededBanners = await db.insert(banners).values(seedBanners).returning()
+  console.log(`✅ Seeded ${seededBanners.length} banners.`)
+
   // --- Seed Blog Posts ---
   console.log("✍️ Seeding blog posts...")
   const adminUser = seededUsers[0]
-  const postsToInsert = seedBlogPosts.map((post) => ({
+  const postsToInsert = seedBlogPosts.map((post) =>({
     ...post,
     authorId: adminUser.id,
   }))

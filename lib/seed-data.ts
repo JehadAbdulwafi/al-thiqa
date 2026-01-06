@@ -165,3 +165,27 @@ export const seedBlogPosts = [
     published: true,
   },
 ]
+
+export const seedBanners = [
+  {
+    title: "مجموعة الشتاء الجديدة",
+    subtitle: "أثاث فاخر بتصاميم عصرية",
+    cta: "تسوق الآن",
+    image: "/modern-luxury-living-room-with-elegant-furniture-b.avif",
+    order: 1,
+  },
+  {
+    title: "خصم يصل إلى 30%",
+    subtitle: "على جميع غرف النوم",
+    cta: "اكتشف العروض",
+    image: "/modern-office-desk.avif",
+    order: 2,
+  },
+  {
+    title: "أثاث مكتبي احترافي",
+    subtitle: "راحة وإنتاجية في مكان عملك",
+    cta: "شاهد المزيد",
+    image: "/marble-coffee-table.avif",
+    order: 3,
+  },
+]

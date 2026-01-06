@@ -10,10 +10,7 @@ import { eq } from "drizzle-orm"
 const termsOfServiceSchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
   content: z.string().min(1, "المحتوى مطلوب"),
-  effectiveDate: z.preprocess((arg) => {
-    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
-    return arg;
-  }, z.date()),
+  effectiveDate: z.date().optional(),
 })
 
 type TermsOfServiceData = z.infer<typeof termsOfServiceSchema>
@@ -29,18 +26,24 @@ export async function updateTermsOfServiceAction(data: TermsOfServiceData) {
   try {
     const existing = await db.query.termsOfService.findFirst()
 
+    const effectiveDate = parsed.data.effectiveDate || new Date()
+
     if (existing) {
       await db
         .update(termsOfService)
         .set({
           title: parsed.data.title,
           content: parsed.data.content,
-          effectiveDate: parsed.data.effectiveDate,
+          effectiveDate: effectiveDate,
           updatedAt: new Date(),
         })
         .where(eq(termsOfService.id, existing.id))
     } else {
-      await db.insert(termsOfService).values(parsed.data)
+      await db.insert(termsOfService).values({
+        title: parsed.data.title,
+        content: parsed.data.content,
+        effectiveDate: effectiveDate,
+      })
     }
   } catch (error) {
     console.error("خطأ في تحديث شروط الخدمة:", error)

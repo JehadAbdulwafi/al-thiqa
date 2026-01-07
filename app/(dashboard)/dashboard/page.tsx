@@ -40,8 +40,8 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <TopProducts products={topProducts} />
-        <ActivitySummary {...activitySummary} />
+        <topProducts products={topProducts} />
+        <activitySummary {...activitySummary} />
       </div>
     </div>
   )

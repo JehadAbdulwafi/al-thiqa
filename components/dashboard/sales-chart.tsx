@@ -1,29 +1,43 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
 
-const data = [
-  { month: "يناير", visitors: 4000 },
-  { month: "فبراير", visitors: 3000 },
-  { month: "مارس", visitors: 5000 },
-  { month: "أبريل", visitors: 4500 },
-  { month: "مايو", visitors: 6000 },
-  { month: "يونيو", visitors: 5500 },
-  { month: "يوليو", visitors: 7000 },
-]
+interface TrendData {
+  month: string
+  views: number
+  products: number
+  blogPosts: number
+}
 
-export function SalesChart() {
+interface SalesChartProps {
+  data: TrendData[]
+}
+
+export function SalesChart({ data }: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>إحصائيات الزوار</CardTitle>
+        <CardTitle>إحصائيات الأداء</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="month" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+            <XAxis
+              dataKey="month"
+              className="text-xs"
+              tick={{ fill: "hsl(var(--muted-foreground))" }}
+            />
             <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
             <Tooltip
               contentStyle={{
@@ -32,7 +46,28 @@ export function SalesChart() {
                 borderRadius: "8px",
               }}
             />
-            <Line type="monotone" dataKey="visitors" stroke="hsl(var(--primary))" strokeWidth={2} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="views"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2}
+              name="المشاهدات"
+            />
+            <Line
+              type="monotone"
+              dataKey="products"
+              stroke="hsl(var(--muted-foreground))"
+              strokeWidth={2}
+              name="المنتجات"
+            />
+            <Line
+              type="monotone"
+              dataKey="blogPosts"
+              stroke="#8884d8"
+              strokeWidth={2}
+              name="المقالات"
+            />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

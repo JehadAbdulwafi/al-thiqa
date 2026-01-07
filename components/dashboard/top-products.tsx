@@ -1,15 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 
-const topProducts = [
-  { name: "أريكة مودرن بيج", views: 1243, badge: "الأكثر مبيعاً" },
-  { name: "طاولة قهوة رخام", views: 1124 },
-  { name: "كرسي مكتبي جلد", views: 982, badge: "جديد" },
-  { name: "سرير ملكي فاخر", views: 876 },
-  { name: "خزانة خشبية", views: 654 },
-]
+interface ProductItem {
+  id: number
+  name: string
+  views: number
+  featured: boolean
+  collection?: string
+  image?: string
+}
 
-export function TopProducts() {
+interface TopProductsProps {
+  products: ProductItem[]
+}
+
+export function TopProducts({ products }: TopProductsProps) {
   return (
     <Card>
       <CardHeader>
@@ -17,19 +23,31 @@ export function TopProducts() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {topProducts.map((product, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium">{product.name}</p>
-                <p className="text-xs text-muted-foreground">{product.views} مشاهدة</p>
-              </div>
-              {product.badge && (
-                <Badge variant="secondary" className="text-xs">
-                  {product.badge}
-                </Badge>
-              )}
-            </div>
-          ))}
+          {products.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              لا توجد منتجات حتى الآن
+            </p>
+          ) : (
+            products.map((product) => (
+              <Link
+                key={product.id}
+                href={`/dashboard/products/${product.id}/edit`}
+                className="flex items-center justify-between hover:bg-muted/50 p-2 rounded-lg transition-colors"
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{product.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {product.collection || "بدون مجموعة"} · {product.views.toLocaleString()} مشاهدة
+                  </p>
+                </div>
+                {product.featured && (
+                  <Badge variant="secondary" className="text-xs">
+                    مميز
+                  </Badge>
+                )}
+              </Link>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>

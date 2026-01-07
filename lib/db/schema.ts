@@ -165,31 +165,6 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 
-// Product View History table - Track all product views
-export const productViewHistory = pgTable("product_view_history", {
-  id: serial("id").primaryKey(),
-  productId: integer("product_id")
-    .notNull()
-    .references(() => products.id, { onDelete: "cascade" }),
-  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
-  sessionId: varchar("session_id", { length: 255 }),
-  userId: integer("user_id").references(() => users.id),
-})
-
-// Monthly Statistics table - Store snapshots for analytics
-export const monthlyStats = pgTable("monthly_stats", {
-  id: serial("id").primaryKey(),
-  month: varchar("month", { length: 7 }).notNull().unique(), // Format: "2025-01"
-  productsCount: integer("products_count").default(0),
-  blogPostsCount: integer("blog_posts_count").default(0),
-  usersCount: integer("users_count").default(0),
-  totalViews: integer("total_views").default(0),
-  newProducts: integer("new_products").default(0),
-  newBlogPosts: integer("new_blog_posts").default(0),
-  newUsers: integer("new_users").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-})
-
 // Users relations
 export const usersRelations = relations(users, ({ many }) => ({
   blogPosts: many(blogPosts),
@@ -228,18 +203,6 @@ export const productImagesRelations = relations(productImages, ({ one }) => ({
 export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
   author: one(users, {
     fields: [blogPosts.authorId],
-    references: [users.id],
-  }),
-}))
-
-// Product View History relations
-export const productViewHistoryRelations = relations(productViewHistory, ({ one }) => ({
-  product: one(products, {
-    fields: [productViewHistory.productId],
-    references: [products.id],
-  }),
-  user: one(users, {
-    fields: [productViewHistory.userId],
     references: [users.id],
   }),
 }))

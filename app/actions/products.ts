@@ -7,6 +7,7 @@ import { z } from "zod"
 import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { logActivity } from "./activity"
+import { deleteMultipleImagesFromStorage, getStorageBucketPath } from "@/lib/supabase-storage-utils"
 
 // Schema for validating product creation/update - must match frontend form
 const productSchema = z.object({
@@ -73,12 +74,23 @@ export async function updateProduct(id: number, data: ProductData) {
   let { imageUrls, ...productData } = parsed.data
 
   try {
+    const existingImages = await db.query.productImages.findMany({
+      where: eq(productImages.productId, id)
+    })
+
+    const newUrls = imageUrls || []
+    const oldUrls = existingImages.map(img => img.url)
+
+    const urlsToDelete = oldUrls.filter(url => !newUrls.includes(url))
+    if (urlsToDelete.length > 0) {
+      await deleteMultipleImagesFromStorage(urlsToDelete, getStorageBucketPath('product'))
+    }
+
     await db.update(products).set(productData).where(eq(products.id, id))
 
-    // Handle images: delete existing and insert new ones
     await db.delete(productImages).where(eq(productImages.productId, id))
-    if (imageUrls && imageUrls.length > 0) {
-      const imagesToInsert = imageUrls
+    if (newUrls.length > 0) {
+      const imagesToInsert = newUrls
         .filter(url => url)
         .map((url, index) => ({
           productId: id,
@@ -102,7 +114,15 @@ export async function updateProduct(id: number, data: ProductData) {
 // Action to delete a product
 export async function deleteProduct(id: number) {
   try {
-    // Delete associated images first due to foreign key constraint
+    const images = await db.query.productImages.findMany({
+      where: eq(productImages.productId, id)
+    })
+
+    const imageUrls = images.map(img => img.url)
+    if (imageUrls.length > 0) {
+      await deleteMultipleImagesFromStorage(imageUrls, getStorageBucketPath('product'))
+    }
+
     await db.delete(productImages).where(eq(productImages.productId, id))
     await db.delete(products).where(eq(products.id, id))
   } catch (error) {

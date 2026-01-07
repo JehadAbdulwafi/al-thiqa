@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { eq } from "drizzle-orm"
 import { logActivity } from "./activity"
 import { z } from "zod"
+import { deleteImageFromStorage, deleteOldImageIfChanged, getStorageBucketPath } from "@/lib/supabase-storage-utils"
 
 const bannerSchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
@@ -46,6 +47,18 @@ export async function updateBanner(id: number, data: BannerData) {
   }
 
   try {
+    const existingBanner = await db.query.banners.findFirst({
+      where: eq(banners.id, id)
+    })
+
+    if (existingBanner) {
+      await deleteOldImageIfChanged(
+        existingBanner.image,
+        parsed.data.image,
+        getStorageBucketPath('banner')
+      )
+    }
+
     await db.update(banners).set(parsed.data).where(eq(banners.id, id))
   } catch (error) {
     console.error("Error updating banner:", error)
@@ -58,6 +71,14 @@ export async function updateBanner(id: number, data: BannerData) {
 
 export async function deleteBanner(id: number) {
   try {
+    const banner = await db.query.banners.findFirst({
+      where: eq(banners.id, id)
+    })
+
+    if (banner?.image) {
+      await deleteImageFromStorage(banner.image, getStorageBucketPath('banner'))
+    }
+
     await db.delete(banners).where(eq(banners.id, id))
   } catch (error) {
     console.error("Error deleting banner:", error)

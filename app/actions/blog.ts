@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm"
 import { slugify } from "@/lib/utils"
 import { getSession } from "@/lib/auth"
 import { logActivity } from "./activity"
+import { deleteImageFromStorage, deleteOldImageIfChanged, getStorageBucketPath } from "@/lib/supabase-storage-utils"
 
 // Schema for validating blog post creation/update
 const blogPostSchema = z.object({
@@ -78,6 +79,18 @@ export async function updateBlogPost(id: number, data: BlogPostData) {
   blogData.authorId = parseInt(session.user.id)
 
   try {
+    const existingPost = await db.query.blogPosts.findFirst({
+      where: eq(blogPosts.id, id)
+    })
+
+    if (existingPost) {
+      await deleteOldImageIfChanged(
+        existingPost.coverImage,
+        blogData.coverImage,
+        getStorageBucketPath('blog')
+      )
+    }
+
     await db.update(blogPosts).set(blogData).where(eq(blogPosts.id, id))
   } catch (error) {
     console.error("خطأ في تحديث منشور المدونة:", error)
@@ -92,6 +105,14 @@ export async function updateBlogPost(id: number, data: BlogPostData) {
 // Action to delete a blog post
 export async function deleteBlogPost(id: number) {
   try {
+    const post = await db.query.blogPosts.findFirst({
+      where: eq(blogPosts.id, id)
+    })
+
+    if (post?.coverImage) {
+      await deleteImageFromStorage(post.coverImage, getStorageBucketPath('blog'))
+    }
+
     await db.delete(blogPosts).where(eq(blogPosts.id, id))
   } catch (error) {
     console.error("خطأ في حذف منشور المدونة:", error)

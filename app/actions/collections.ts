@@ -8,6 +8,7 @@ import { redirect } from "next/navigation"
 import { eq } from "drizzle-orm"
 import { slugify } from "@/lib/utils"
 import { logActivity } from "./activity"
+import { deleteImageFromStorage, deleteOldImageIfChanged, getStorageBucketPath } from "@/lib/supabase-storage-utils"
 
 // Schema for validating collection creation/update
 const collectionSchema = z.object({
@@ -62,6 +63,18 @@ export async function updateCollection(id: number, data: CollectionData) {
   }
 
   try {
+    const existingCollection = await db.query.collections.findFirst({
+      where: eq(collections.id, id)
+    })
+
+    if (existingCollection) {
+      await deleteOldImageIfChanged(
+        existingCollection.image,
+        collectionData.image,
+        getStorageBucketPath('collection')
+      )
+    }
+
     await db.update(collections).set(collectionData).where(eq(collections.id, id))
   } catch (error) {
     console.error("Error updating collection:", error)
@@ -76,6 +89,14 @@ export async function updateCollection(id: number, data: CollectionData) {
 // Action to delete a collection
 export async function deleteCollection(id: number) {
   try {
+    const collection = await db.query.collections.findFirst({
+      where: eq(collections.id, id)
+    })
+
+    if (collection?.image) {
+      await deleteImageFromStorage(collection.image, getStorageBucketPath('collection'))
+    }
+
     await db.delete(collections).where(eq(collections.id, id))
   } catch (error) {
     console.error("Error deleting collection:", error)

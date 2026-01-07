@@ -49,8 +49,6 @@ export function TermsOfServiceForm({ termsOfServiceData }: TermsOfServiceFormPro
 
     try {
       await updateTermsOfServiceAction(data as any)
-      router.push("/dashboard/terms")
-      router.refresh()
     } catch (err: any) {
       setGeneralError(err.message || "فشل تحديث شروط الخدمة")
     } finally {

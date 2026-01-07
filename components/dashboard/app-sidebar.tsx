@@ -18,6 +18,7 @@ import {
   Shield,
   Scale,
   List,
+  Image as ImageIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/dashboard/nav-main"
@@ -78,6 +79,11 @@ const data = {
       title: "المستخدمين",
       url: "/dashboard/users",
       icon: Users,
+    },
+    {
+      title: "اللافتات",
+      url: "/dashboard/banners",
+      icon: ImageIcon,
     },
     {
       title: "سياسة الخصوصية",

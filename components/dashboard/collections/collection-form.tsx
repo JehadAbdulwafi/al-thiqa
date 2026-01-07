@@ -105,8 +105,6 @@ export function CollectionForm({ collection }: CollectionFormProps) {
       } else {
         await createCollection(data as any)
       }
-      router.push("/dashboard/collections")
-      router.refresh()
     } catch (err: any) {
       setGeneralError(err.message || "فشل حفظ المجموعة")
     } finally {

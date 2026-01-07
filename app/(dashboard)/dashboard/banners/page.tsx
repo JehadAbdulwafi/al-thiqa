@@ -17,8 +17,8 @@ export default async function BannersPage() {
     subtitle: banner.subtitle,
     cta: banner.cta,
     image: banner.image,
-    isActive: banner.isActive,
-    order: banner.order,
+    isActive: banner.isActive ?? false,
+    order: banner.order ?? 0,
     createdAt: banner.createdAt,
   }))
 

@@ -1,3 +1,5 @@
+import "server-only"
+
 import { db } from "@/lib/db"
 import { products, blogPosts, collections, privacyPolicy, termsOfService, banners } from "@/lib/db/schema"
 import { desc, eq, sql, asc, or } from "drizzle-orm"
@@ -443,6 +445,19 @@ export async function getBanners(limit?: number) {
     limit: limit,
   })
   console.log(`Found ${data.length} banners.`)
+  return data
+}
+
+/**
+ * Fetches a single banner by its ID.
+ * @param id The ID of banner to fetch.
+ * @returns A promise that resolves to banner object or null if not found.
+ */
+export async function getBannerById(id: number) {
+  console.log(`Fetching banner by ID: ${id}...`)
+  const data = await db.query.banners.findFirst({
+    where: eq(banners.id, id),
+  })
   return data
 }
 

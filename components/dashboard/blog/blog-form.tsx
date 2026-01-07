@@ -110,8 +110,6 @@ export function BlogForm({ blogPost }: BlogFormProps) {
       } else {
         await createBlogPost(data as any)
       }
-      router.push("/dashboard/blog")
-      router.refresh()
     } catch (err: any) {
       setGeneralError(err.message || "فشل حفظ منشور المدونة")
     } finally {

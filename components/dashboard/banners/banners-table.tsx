@@ -1,6 +1,14 @@
-import type React from "react"
+"use client"
+
+import { deleteBanner } from "@/app/actions/banners"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
-import { Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react"
+import Link from "next/link"
+import { useState } from "react"
 
 type Banner = {
   id: number
@@ -13,82 +21,96 @@ type Banner = {
   createdAt: Date
 }
 
-interface BannersTableProps {
-  banners: Banner[]
-  onToggleActive: (id: number, isActive: boolean) => void
-}
+export function BannersTable({ banners }: { banners: Banner[] }) {
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
-export function BannersTable({ banners, onToggleActive }: BannersTableProps) {
   return (
-    <div className="rounded-md border">
-      <table className="min-w-full divide-y">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الصورة</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنوان</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنوان الفرعي</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">دعوة العمل</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الترتيب</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">أفعال</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y">
+    <div className="rounded-md border bg-white">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-right">الصورة</TableHead>
+            <TableHead className="text-right">العنوان</TableHead>
+            <TableHead className="text-right">العنوان الفرعي</TableHead>
+            <TableHead className="text-right">دعوة العمل</TableHead>
+            <TableHead className="text-right">الحالة</TableHead>
+            <TableHead className="text-right">الترتيب</TableHead>
+            <TableHead className="text-left">الإجراءات</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {banners.map((banner) => (
-            <tr key={banner.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4">
-                <div className="relative w-20 h-16">
+            <TableRow key={banner.id}>
+              <TableCell>
+                <div className="w-16 h-12 rounded-md bg-muted overflow-hidden">
                   <Image
                     src={banner.image}
                     alt={banner.title}
-                    fill
-                    className="object-cover rounded"
+                    width={64}
+                    height={48}
+                    className="w-full h-full object-cover"
                   />
                 </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                <div className="font-medium text-gray-900">{banner.title}</div>
-              </td>
-              <td className="px-6 py-4 text-right text-gray-600">
+              </TableCell>
+              <TableCell>
+                <div className="font-medium">{banner.title}</div>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
                 {banner.subtitle}
-              </td>
-              <td className="px-6 py-4 text-right text-gray-600">
+              </TableCell>
+              <TableCell className="text-muted-foreground">
                 {banner.cta}
-              </td>
-              <td className="px-6 py-4 text-right">
-                <button
-                  onClick={() => onToggleActive(banner.id, banner.isActive)}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    banner.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-400"
-                  }`}
-                  aria-label={banner.isActive ? "تعطيل" : "تفعيل"}
-                >
-                  {banner.isActive && <ToggleLeft className="w-4 h-4" />}
-                  {!banner.isActive && <ToggleRight className="w-4 h-4" />}
-                </button>
-              </td>
-              <td className="px-6 py-4 text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      banner.isActive
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {banner.isActive ? "نشط" : "غير نشط"}
-                  </span>
-                </div>
-              </td>
-              <td className="px-6 py-4 text-center text-gray-600">
+              </TableCell>
+              <TableCell>
+                <Badge variant={banner.isActive ? "default" : "secondary"} className="gap-1.5">
+                  {banner.isActive ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  {banner.isActive ? "نشط" : "غير نشط"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-center">
                 {banner.order}
-              </td>
-            </tr>
+              </TableCell>
+              <TableCell className="text-left">
+                <div className="flex justify-end gap-2">
+                  <Link href={`/dashboard/banners/${banner.id}/edit`}>
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(banner.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>هل أنت متأكد تماماً؟</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          سيؤدي هذا الإجراء إلى حذف اللافتة نهائياً من قاعدة البيانات.
+                          لا يمكن التراجع عن هذا الإجراء.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteId && deleteBanner(deleteId)}
+                        >
+                          حذف
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

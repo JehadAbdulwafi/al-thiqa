@@ -68,7 +68,7 @@ export async function createUser(data: {
     details: `Created user: ${data.email}`,
   })
 
-  revalidatePath("/admin/users")
+  revalidatePath("/dashboard/users")
   return { success: true }
 }
 
@@ -101,7 +101,7 @@ export async function updateUser(
     details: `Updated user: ${data.email}`,
   })
 
-  revalidatePath("/admin/users")
+  revalidatePath("/dashboard/users")
   return { success: true }
 }
 
@@ -131,7 +131,7 @@ export async function deleteUser(userId: string) {
     details: `Deleted user: ${user?.email ?? "unknown"}`,
   })
 
-  revalidatePath("/admin/users")
+  revalidatePath("/dashboard/users")
   return { success: true }
 }
 

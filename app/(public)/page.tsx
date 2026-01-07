@@ -3,17 +3,18 @@ import { FeaturedProducts } from "@/components/featured-products"
 import { CategoriesSection } from "@/components/categories-section"
 import { BestSellers } from "@/components/best-sellers"
 import { BlogSection } from "@/components/blog-section"
-import { getAllCollections, getBestSellers, getBlogPosts, getFeaturedProducts } from "@/lib/queries"
+import { getAllCollections, getBanners, getBestSellers, getBlogPosts, getFeaturedProducts } from "@/lib/queries"
 
 export default async function Home() {
   const featuredProducts = await getFeaturedProducts()
   const bestSellers = await getBestSellers()
   const blogPosts = await getBlogPosts()
   const collections = await getAllCollections()
+  const banners = await getBanners(3)
 
   return (
     <>
-      <HeroCarousel />
+      <HeroCarousel banners={banners} />
       <FeaturedProducts products={featuredProducts} />
       <CategoriesSection collections={collections} />
       <BestSellers products={bestSellers} />

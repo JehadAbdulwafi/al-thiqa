@@ -3,13 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
-import Image from "next/image"
 import Link from "next/link"
-import { getBanners } from "@/lib/queries"
-import type { Banner } from "@/lib/db/schema"
 
-export async function HeroCarousel() {
-  const banners = await getBanners(3)
+export function HeroCarousel({ banners }) {
   const autoplayPlugin = Autoplay({ delay: 6000, stopOnInteraction: true })
 
   return (

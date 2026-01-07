@@ -1,37 +1,74 @@
+import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { banners } from "@/lib/db/schema"
+import { users } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { redirect } from "next/navigation"
 import { BannerForm } from "@/components/dashboard/banners/banner-form"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { getBannerById } from "@/lib/queries"
 
-type BannerEditPageProps = {
-  params: Promise<{
+interface EditBannerPageProps {
+  params: {
     id: string
-  }>
+  }
 }
 
-export default async function BannerEditPage({ params }: BannerEditPageProps) {
+export default async function EditBannerPage({ params }: EditBannerPageProps) {
+  const session = await auth()
   const { id } = await params
-  const banner = await db.query.banners.findFirst({
-    where: eq(banners.id, parseInt(id, 10)),
+
+  if (!id) {
+    redirect("/dashboard/banners")
+  }
+
+  if (!session?.user?.id) {
+    redirect("/login")
+  }
+
+  // Check if user is admin
+  const currentUser = await db.query.users.findFirst({
+    where: eq(users.id, parseInt(session.user.id)),
+    columns: { role: true },
   })
 
+  if (currentUser?.role !== "ADMIN") {
+    redirect("/dashboard")
+  }
+
+  const bannerId = parseInt(id, 10)
+  if (isNaN(bannerId)) {
+    redirect("/dashboard/banners")
+  }
+
+  const banner = await getBannerById(bannerId)
   if (!banner) {
-    return <div className="container mx-auto px-4 py-8">اللافتة غير موجودة</div>
+    redirect("/dashboard/banners")
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-6">
-        <Link href="/dashboard/banners" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
-          <ArrowLeft className="w-4 h-4" />
-          العودة إلى اللوفتات
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">تعديل اللافتة: {banner.title}</h2>
+        <p className="text-muted-foreground mt-1">تحديث تفاصيل اللافتة</p>
       </div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">تحديث اللافتة</h1>
-      <BannerForm banner={banner} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>معلومات اللافتة</CardTitle>
+          <CardDescription>قم بتحديث تفاصيل اللافتة أدناه</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BannerForm banner={{
+            id: banner.id,
+            title: banner.title,
+            subtitle: banner.subtitle,
+            cta: banner.cta,
+            image: banner.image,
+            isActive: banner.isActive ?? false,
+            order: banner.order ?? 0,
+          }} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

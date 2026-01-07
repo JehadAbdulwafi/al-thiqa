@@ -1,4 +1,7 @@
 import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
+import { users } from "@/lib/db/schema"
+import { eq } from "drizzle-orm"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductForm } from "@/components/dashboard/products/product-form"
@@ -22,17 +25,35 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     redirect("/login")
   }
 
+  // Check if user is admin
+  const currentUser = await db.query.users.findFirst({
+    where: eq(users.id, parseInt(session.user.id)),
+    columns: { role: true },
+  })
+
+  if (currentUser?.role !== "ADMIN") {
+    redirect("/dashboard")
+  }
+
   const productId = parseInt(id, 10)
   if (isNaN(productId)) {
     redirect("/dashboard/products")
   }
 
-  const product = await getProductById(productId)
+  const product = await getProductById(id)
   const collections = await getCollectionsForForm()
 
   if (!product) {
     redirect("/dashboard/products")
   }
+
+  const productWithImageUrls = {
+    ...product,
+    price: product.price ? Number(product.price) : null,
+    compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+    weight: product.weight ? Number(product.weight) : null,
+    imageUrls: product.images.map(img => img.url),
+  } as any
 
   return (
     <div className="space-y-6">
@@ -47,7 +68,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
           <CardDescription>قم بتحديث تفاصيل المنتج أدناه</CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductForm product={product} collections={collections} />
+          <ProductForm product={productWithImageUrls} collections={collections} />
         </CardContent>
       </Card>
     </div>

@@ -1,18 +1,44 @@
+import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { banners } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { users } from "@/lib/db/schema"
+import { eq } from "drizzle-orm"
+import { redirect } from "next/navigation"
 import { BannerForm } from "@/components/dashboard/banners/banner-form"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function BannerNewPage() {
-  const maxOrderBanner = await db.query.banners.findFirst({
-    orderBy: [desc(banners.order)],
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    redirect("/login")
+  }
+
+  // Check if user is admin
+  const currentUser = await db.query.users.findFirst({
+    where: eq(users.id, parseInt(session.user.id)),
+    columns: { role: true },
   })
-  const nextOrder = maxOrderBanner ? (maxOrderBanner.order ?? 0) + 1 : 1
+
+  if (currentUser?.role !== "ADMIN") {
+    redirect("/dashboard")
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">إنشاء لافتة جديدة</h1>
-      <BannerForm />
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">إضافة لافتة جديدة</h2>
+        <p className="text-muted-foreground mt-1">إنشاء لافتة جديدة</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>معلومات اللافتة</CardTitle>
+          <CardDescription>املأ التفاصيل للافتة الجديدة</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BannerForm />
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -49,8 +49,6 @@ export function PrivacyPolicyForm({ privacyPolicyData }: PrivacyPolicyFormProps)
 
     try {
       await updatePrivacyPolicyAction(data as any)
-      router.push("/dashboard/privacy")
-      router.refresh()
     } catch (err: any) {
       setGeneralError(err.message || "فشل تحديث سياسة الخصوصية")
     } finally {

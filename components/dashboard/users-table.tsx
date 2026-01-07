@@ -154,7 +154,7 @@ export function UsersTable({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => router.push(`/admin/users/${user.id}/edit`)}
+                  onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
                 >
                   <Edit2 className="h-4 w-4" />
                 </Button>

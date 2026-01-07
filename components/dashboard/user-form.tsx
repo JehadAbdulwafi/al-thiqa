@@ -71,7 +71,7 @@ export function UserForm({ user }: UserFormProps) {
             password: formData.password
         })
       }
-      router.push("/admin/users")
+      router.push("/dashboard/users")
       router.refresh()
     } catch (err: any) {
       setError(err.message || "Failed to save user")

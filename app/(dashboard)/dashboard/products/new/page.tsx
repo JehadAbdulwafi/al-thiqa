@@ -16,7 +16,7 @@ export default async function NewProductPage() {
 
   // Check if user is admin
   const currentUser = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
+    where: eq(users.id, parseInt(session.user.id)),
     columns: { role: true },
   })
   if (currentUser?.role !== "ADMIN") {

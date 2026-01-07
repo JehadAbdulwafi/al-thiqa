@@ -6,7 +6,7 @@ interface ProductItem {
   id: number
   name: string
   views: number
-  featured: boolean
+  featured: boolean | null
   collection?: string
   image?: string
 }
@@ -40,7 +40,7 @@ export function TopProducts({ products }: TopProductsProps) {
                     {product.collection || "بدون مجموعة"} · {product.views.toLocaleString()} مشاهدة
                   </p>
                 </div>
-                {product.featured && (
+                {product.featured === true && (
                   <Badge variant="secondary" className="text-xs">
                     مميز
                   </Badge>

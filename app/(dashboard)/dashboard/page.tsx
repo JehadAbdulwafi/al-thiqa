@@ -4,20 +4,21 @@ import {
   getTopProducts,
   getRecentActivity,
   getActivitySummary,
-  getUserActivityByRole,
 } from "@/lib/dashboard-queries"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { SystemHealth } from "@/components/dashboard/system-health"
 import { ExportOptions } from "@/components/dashboard/export-options"
+import { TopProducts } from "@/components/dashboard/top-products"
+import { ActivitySummary } from "@/components/dashboard/activity-summary"
 
 export default async function AdminDashboard() {
   const stats = await getDashboardStats()
   const trends = await getMonthlyTrends(7)
-  const topProducts = await getTopProducts(5)
+  const topProductsData = await getTopProducts(5)
   const recentActivity = await getRecentActivity(10)
-  const activitySummary = await getActivitySummary()
+  const activitySummaryData = await getActivitySummary()
 
   return (
     <div className="space-y-6">
@@ -40,8 +41,8 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <topProducts products={topProducts} />
-        <activitySummary {...activitySummary} />
+        <TopProducts products={topProductsData} />
+        <ActivitySummary {...activitySummaryData} />
       </div>
     </div>
   )
